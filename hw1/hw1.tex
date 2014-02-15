@@ -1,0 +1,283 @@
+\documentclass[12pt, notitlepage, final]{article} 
+
+\newcommand{\name}{Vince Coghlan}
+
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{latexsym}
+\usepackage{enumerate}
+\usepackage{amsthm}
+\usepackage{nccmath}
+\usepackage{setspace}
+\usepackage[pdftex]{graphicx}
+\usepackage{epstopdf}
+\usepackage[siunitx]{circuitikz}
+\usepackage{tikz}
+\usepackage{float}
+\usepackage{cancel} 
+\usepackage{setspace}
+\usepackage{overpic}
+\usepackage{mathtools}
+\usepackage{listings}
+\usepackage{color}
+
+\numberwithin{equation}{section}
+\DeclareRobustCommand{\beginProtected}[1]{\begin{#1}}
+\DeclareRobustCommand{\endProtected}[1]{\end{#1}}
+\newcommand{\dbr}[1]{d_{\mbox{#1BR}}}
+\newtheorem{lemma}{Lemma}
+\newtheorem*{corollary}{Corollary}
+\newtheorem{theorem}{Theorem}
+\newtheorem{proposition}{Proposition}
+\theoremstyle{definition}
+\newtheorem{define}{Definition}
+\newcommand{\column}[2]{
+\left( \begin{array}{ccc}
+#1 \\
+#2
+\end{array} \right)}
+
+\newdimen\digitwidth
+\settowidth\digitwidth{0}
+\def~{\hspace{\digitwidth}}
+
+\setlength{\parskip}{1pc}
+\setlength{\parindent}{0pt}
+\setlength{\topmargin}{-3pc}
+\setlength{\textheight}{9.0in}
+\setlength{\oddsidemargin}{0pc}
+\setlength{\evensidemargin}{0pc}
+\setlength{\textwidth}{6.5in}
+\newcommand{\answer}[1]{\newpage\noindent\framebox{\vbox{{\bf CSCI 4593 Spring 2014} 
+\hfill {\bf \name} \vspace{-1cm}
+\begin{center}{Homework \#1}\end{center} } }\bigskip }
+
+%absolute value code
+\DeclarePairedDelimiter\abs{\lvert}{\rvert}%
+\DeclarePairedDelimiter\norm{\lVert}{\rVert}
+\makeatletter
+\let\oldabs\abs
+\def\abs{\@ifstar{\oldabs}{\oldabs*}}
+%
+\let\oldnorm\norm
+\def\norm{\@ifstar{\oldnorm}{\oldnorm*}}
+\makeatother
+
+\def\dbar{{\mathchar'26\mkern-12mu d}}
+\def \Frac{\displaystyle\frac}
+\def \Sum{\displaystyle\sum}
+\def \Int{\displaystyle\int}
+\def \Prod{\displaystyle\prod}
+\def \P[x]{\Frac{\partial}{\partial x}}
+\def \D[x]{\Frac{d}{dx}}
+\newcommand{\PD}[2]{\frac{\partial#1}{\partial#2}}
+\newcommand{\PF}[1]{\frac{\partial}{\partial#1}}
+\newcommand{\DD}[2]{\frac{d#1}{d#2}}
+\newcommand{\DF}[1]{\frac{d}{d#1}}
+\newcommand{\fix}[2]{\left(#1\right)_#2}
+\newcommand{\ket}[1]{|#1\rangle}
+\newcommand{\bra}[1]{\langle#1|}
+\newcommand{\braket}[2]{\langle #1 | #2 \rangle}
+\newcommand{\bopk}[3]{\langle #1 | #2 | #3 \rangle}
+\newcommand{\Choose}[2]{\displaystyle {#1 \choose #2}}
+\newcommand{\proj}[1]{\ket{#1}\bra{#1}}
+\def\del{\vec{\nabla}}
+\newcommand{\avg}[1]{\langle#1\rangle}
+\newcommand{\piecewise}[4]{\left\{\beginProtected{array}{rl}#1&:#2\\#3&:#4\endProtected{array}\right.}
+\newcommand{\systeme}[2]{\left\{\beginProtected{array}{rl}#1\\#2\endProtected{array}\right.}
+\def \KE{K\!E}
+\def\Godel{G$\ddot{\mbox{o}}$del}
+
+\onehalfspacing
+
+\begin{document}
+
+\answer{}
+
+\textbf{1.5:} (a) For P1:
+\[
+  \text{Instructions per second} = \frac{\text{Cycles per second}}{\text{CPI}} \Rightarrow \text{IPS}=\frac{3\;\text{GHz}}{1.5} = 2\cdot10^9\;\text{IPS}
+\]
+Similarily P2 works at $2.5\cdot10^9\;$IPS and P2 works at $1.82\cdot10^9\;$IPS.  This means
+that P2 is the highest preformance.
+
+(b) In 10 seconds, P1 will have executed $2\cdot10^{10}$ instructions in $3\cdot10^{10}$ clock
+cycles. Similarily P2 will have executed $2.5\cdot10^{10}$ IPS in $2.5\cdot10^{10}$ cycles. P3
+will have executed $1.82\cdot10^{10}$ instructions in $4\cdot10^{10}$ cycles.
+
+(c) Reducing the time by $30\%$ means executing the 10 second program down to 7 seconds, and
+the various processors will need to execute the same amount of instructions in that shorter
+time period.  We can find:
+\[
+  f = \text{\# of Instructions}\frac{1.2\cdot\text{CPI}}{\text{time}}
+\]
+This leads to the following:
+\[
+  f(\text{P1}) = 2\cdot10^{10}\frac{1.2\cdot1.5}{7} = 5.14\;\text{GHz}
+\]
+\[
+  f(\text{P2}) = 2.5\cdot10^{10}\frac{1.2\cdot1}{7} = 4.29\;\text{GHz}
+\]
+\[
+  f(\text{P3}) = 1.82\cdot10^{10}\frac{1.2\cdot2.2}{7} = 6.86\;\text{GHz}
+\]
+
+\textbf{1.6:}  (a) These instructions will be devided into the classes as follows:
+\[
+  \text{Class A: }1\cdot10^5
+\]
+\[
+  \text{Class B: }2\cdot10^5
+\]
+\[
+  \text{Class C: }5\cdot10^5
+\]
+\[
+  \text{Class D: }2\cdot10^5
+\]
+From this we can figure the time to execute the program for P1 and P2:
+\begin{center}
+  \begin{tabular}{| c | c | c | c | c | c |}
+    \hline
+    Implementation & Time in A & Time in B & Time in C & Time in D & Total Time\\
+    \hline
+    P1 & $40 \mu$s & $160 \mu$s & $600 \mu$s & $240 \mu$s & $1.04$ms \\
+    P2 & $66.7 \mu$s & $133.3 \mu$s & $333.3 \mu$s & $133.3 \mu$s & $666.6 \mu$s \\
+    \hline
+  \end{tabular}
+\end{center}
+
+This makes finding the CPI much easier:
+\[
+  \text{CPI}_{P1}=1.04\text{ms}\frac{2.5\text{GHz}}{1\cdot10^6} = 2.6
+\]
+\[
+  \text{CPI}_{P2}=666.6\mu\text{s}\frac{3\text{GHz}}{1\cdot10^6} = 2
+\]
+This shows that P1 is faster.
+
+(b) To find the clock cycles:
+\[
+  \text{cycles}_{P1} = 1.04\text{ms}\cdot2.5\text{GHz} = 2.6\cdot10^6
+\]
+\[
+  \text{cycles}_{P2} = 666.666\mu\text{s}\cdot3\text{GHz} = 2\cdot10^6
+\]
+
+\textbf{1.8.1:} The average capacitave load for Pentium is:
+\[
+  \frac{90+10}{1.25^2\cdot3.6\cdot10^9} = 1.778\cdot10^{-8}F
+\]
+And the i5:
+\[
+  \frac{30+40}{0.9^2\cdot3.4\cdot10^9} = 2.543\cdot10^{-8}F
+\]
+
+\textbf{1.9.1:} The total execution time for a single processor is:
+\[
+  2.56\cdot10^9\frac{1}{2\cdot10^9} + 1.28\cdot10^9\frac{12}{2\cdot10^9} + 0.256\cdot10^9\frac{5}{2\cdot10^9} = 9.6\;\text{seconds}
+\]
+With multiple processors, the first two numbers change, but the last doesnt, this is
+all in the following table:
+\begin{center}
+  \begin{tabular}{|c|c|c|}
+    \hline
+    \# of cores & Total Execution Time & Relative Speedup\\
+    \hline
+    1 & 9.6 seconds & 1 \\
+    2 & 7.04 seconds & 1.36 \\
+    4 & 3.84 seconds & 2.5 \\
+    8 & 2.24 seconds & 4.29 \\
+    \hline
+  \end{tabular}
+\end{center}
+\textbf{1.10.1:} To find the yields we must first find the die area. For wafer 1:
+\[
+  \text{Die Area} = \frac{\pi (15)^2}{84} = 8.415\text{cm}^2
+\]
+for wafer 2:
+\[
+  \text{Die Area} = \frac{\pi (20)^2}{100} = 12.566\text{cm}^2
+\]
+
+yield for wafer 1 is:
+\[
+  \frac{1}{(1+(0.020\cdot8.415/2))^2} = 0.851
+\]
+and wafer 2:
+\[
+  \frac{1}{(1+(0.031\cdot12.566/2))^2} = 0.708
+\]
+
+\textbf{1.10.3:} If the number of dies per wafer is increased by 10\% and the defects per
+area unit increases by 15\%, the die area will become:
+\[
+  \text{Die Area} = \frac{\text{Wafer Area}}{1.1\cdot\text{Dies Per Wafer}}
+\]
+and the yield will become
+\[
+  \text{yield} = \frac{1}{(1+(1.15\cdot\text{Defects per area}+\text{Die Area}/(2\cdot1.1)))^2}
+\]
+For the first wafer the new die area is (rounding number of dies up), $7.6\text{cm}^2$, and the
+new yield is $0.846$.  For the second wafer the new die area is $11.4\text{cm}^2$ and the new yield
+is $0.691$.
+
+\textbf{1.11.1:} The CPI is:
+\[
+  750\frac{3\cdot10^9}{1.389\cdot10^{12}} = 1.62
+\]
+
+\textbf{1.11.2:} The spec ratio is:
+\[
+  \frac{9650}{750} = 12.87
+\]
+
+\textbf{1.11.4:} Since
+\[
+  \text{CPU Time} = \frac{\text{Instruction Count}\cdot\text{CPI}}{\text{Clock}}
+\]
+The increase is going to be $1.1\cdot1.05 \Rightarrow 15.5\%$.
+\newpage
+
+\textbf{1.11.6:} Using the following equation we find:
+\[
+  \text{CPI} = \frac{\text{CPU cycles}}{0.85\cdot\text{Instruction Count}} = \frac{2.8\cdot10^{12}}{0.85\cdot2.389\cdot10^{12}} = 1.38
+\]
+
+\textbf{1.12.1:} To check the preformance of the processors, I will use the CPU Time metric:
+\[
+  \text{CPU Time}_{P1} = \frac{5\cdot10^9 \cdot 0.9}{4\cdot10^9} = 1.125
+\]
+\[
+  \text{CPU Time}_{P2} = \frac{1\cdot10^9 \cdot 0.75}{3\cdot10^9} = 0.25
+\]
+P2 is drastically faster than P1.
+
+\textbf{1.12.3:} The MIPS can be calculated like so:
+\[
+  \text{MIPS}_{P1} = \frac{4\cdot10^9}{0.9\cdot10^6} = 4444.44
+\]
+\[
+  \text{MIPS}_{P2} = \frac{3\cdot10^9}{0.75\cdot10^6} = 4000
+\]
+This shows P1 as being the faster processor.
+
+\textbf{1.13:} (a) 20\% reduction of 70 is 56.  This means that the total time will be 236s.
+This is a 5.6\% speedup.
+
+(b) To speed the system up by 25\% we would need 62.5 less instructions, this means that the
+reduction of the INT instructions would have to be less than 0, which is impossible.  You can
+not speed up this machine by 1.25 only by speeding up the INT instructions.
+
+\textbf{1.14:} (a) This program takes $256\cdot10^6$ instructions and runs it in $256$ms. It is
+impossible to double the speed by only changing the floating point instructions, its just not
+enough.
+
+(b) The CPI of L/S instructions would have to be 0.8.
+
+
+
+
+
+\end{document}
