@@ -1,0 +1,205 @@
+\documentclass[12pt, notitlepage, final]{article} 
+
+\newcommand{\name}{Vince Coghlan}
+
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{latexsym}
+\usepackage{enumerate}
+\usepackage{amsthm}
+\usepackage{nccmath}
+\usepackage{setspace}
+\usepackage[pdftex]{graphicx}
+\usepackage{epstopdf}
+\usepackage[siunitx]{circuitikz}
+\usepackage{tikz}
+\usepackage{float}
+\usepackage{cancel} 
+\usepackage{setspace}
+\usepackage{overpic}
+\usepackage{mathtools}
+\usepackage{listings}
+\usepackage{color}
+
+\numberwithin{equation}{section}
+\DeclareRobustCommand{\beginProtected}[1]{\begin{#1}}
+\DeclareRobustCommand{\endProtected}[1]{\end{#1}}
+\newcommand{\dbr}[1]{d_{\mbox{#1BR}}}
+\newtheorem{lemma}{Lemma}
+\newtheorem*{corollary}{Corollary}
+\newtheorem{theorem}{Theorem}
+\newtheorem{proposition}{Proposition}
+\theoremstyle{definition}
+\newtheorem{define}{Definition}
+\newcommand{\column}[2]{
+\left( \begin{array}{ccc}
+#1 \\
+#2
+\end{array} \right)}
+
+\newdimen\digitwidth
+\settowidth\digitwidth{0}
+\def~{\hspace{\digitwidth}}
+
+\setlength{\parskip}{1pc}
+\setlength{\parindent}{0pt}
+\setlength{\topmargin}{-3pc}
+\setlength{\textheight}{9.0in}
+\setlength{\oddsidemargin}{0pc}
+\setlength{\evensidemargin}{0pc}
+\setlength{\textwidth}{6.5in}
+\newcommand{\answer}[1]{\newpage\noindent\framebox{\vbox{{\bf CSCI 4593 Spring 2014} 
+\hfill {\bf \name} \vspace{-1cm}
+\begin{center}{Homework \#1}\end{center} } }\bigskip }
+
+%absolute value code
+\DeclarePairedDelimiter\abs{\lvert}{\rvert}%
+\DeclarePairedDelimiter\norm{\lVert}{\rVert}
+\makeatletter
+\let\oldabs\abs
+\def\abs{\@ifstar{\oldabs}{\oldabs*}}
+%
+\let\oldnorm\norm
+\def\norm{\@ifstar{\oldnorm}{\oldnorm*}}
+\makeatother
+
+\def\dbar{{\mathchar'26\mkern-12mu d}}
+\def \Frac{\displaystyle\frac}
+\def \Sum{\displaystyle\sum}
+\def \Int{\displaystyle\int}
+\def \Prod{\displaystyle\prod}
+\def \P[x]{\Frac{\partial}{\partial x}}
+\def \D[x]{\Frac{d}{dx}}
+\newcommand{\PD}[2]{\frac{\partial#1}{\partial#2}}
+\newcommand{\PF}[1]{\frac{\partial}{\partial#1}}
+\newcommand{\DD}[2]{\frac{d#1}{d#2}}
+\newcommand{\DF}[1]{\frac{d}{d#1}}
+\newcommand{\fix}[2]{\left(#1\right)_#2}
+\newcommand{\ket}[1]{|#1\rangle}
+\newcommand{\bra}[1]{\langle#1|}
+\newcommand{\braket}[2]{\langle #1 | #2 \rangle}
+\newcommand{\bopk}[3]{\langle #1 | #2 | #3 \rangle}
+\newcommand{\Choose}[2]{\displaystyle {#1 \choose #2}}
+\newcommand{\proj}[1]{\ket{#1}\bra{#1}}
+\def\del{\vec{\nabla}}
+\newcommand{\avg}[1]{\langle#1\rangle}
+\newcommand{\piecewise}[4]{\left\{\beginProtected{array}{rl}#1&:#2\\#3&:#4\endProtected{array}\right.}
+\newcommand{\systeme}[2]{\left\{\beginProtected{array}{rl}#1\\#2\endProtected{array}\right.}
+\def \KE{K\!E}
+\def\Godel{G$\ddot{\mbox{o}}$del}
+
+\lstset{language=C}
+\onehalfspacing
+
+\begin{document}
+
+\answer{}
+
+\textbf{2.3)}
+\begin{center}
+  sub \$t5, \$s3, \$s4;\\
+  add \$t5, \$t5, \$t5;\\
+  add \$t5, \$t5, \$t5;\\
+  lw \$t0, \$t5(\$s6);\\
+  addi \$t5, \$zero, 8;\\
+  add \$t5, \$t5, \$t5;\\
+  add \$t5, \$t5, \$t5;\\
+  sw \$t5(\$s7), \$t0;
+\end{center}
+
+\textbf{2.7)} From low memory to high memory, the value would look like:
+\begin{center}
+  \begin{tabular}{|c|c|c|c|c|c|c|c|}
+    \hline
+    AB & CD & EF & 12 \\
+    \hline
+  \end{tabular}\\
+  Big Endian
+
+  \begin{tabular}{|c|c|c|c|c|c|c|c|}
+    \hline
+    12 & EF & CD & AB \\
+    \hline
+  \end{tabular}\\
+  Little Endian
+\end{center}
+
+\textbf{2.11)}
+\begin{center}
+  \begin{tabular} {|c|c|c|c|c|c|c|}
+    \hline
+    inst & opcode & rs & rt & rd & immed \\
+    \hline
+    addi & 0x8 & 0x16 & 0x8 & - & 0x4 \\
+    add & 0x0 & 0x16 & 0x0 & 0x9 & - \\
+    sw & 0x2b & 0x8 & 0x9 & - & 0x0 \\
+    lw & 0x23 & 0x8 & 0x8 & - & 0x0 \\
+    add & 0x0 & 0x9 & 0x8 & 0x10 & - \\
+    \hline
+  \end{tabular}
+\end{center}
+
+\textbf{2.12.3)} The answer should be positive, since we are taking a
+negative number, and adding something larger to it, like so:
+\begin{center}
+  \begin{tabular} {cccccccc}
+    1&0&0&0&0&0&0&0\\
+    0&0&1&1&0&0&0&0\\
+    \hline
+    1&0&1&1&0&0&0&0\\
+  \end{tabular}
+\end{center}
+Which is equivalent to 0xB0000000.
+
+\textbf{2.12.4)} Yes, there has been overflow, since the answer we are
+looking for should be positive, and this is negative.
+
+\textbf{2.14)} This is equivalent to add \$s0, \$s0, \$s0, basically double
+the contents of \$s0. Its an R type instruction.
+
+\textbf{2.15)} This is equivalent to 0xAD490020, an I type instruction.
+
+\textbf{2.17)} This is equivalent to lw \$v0, 4(\$at), an I typer instruction.
+also can be 0x8C220004
+
+\textbf{2.19.2)} The value will be the same as \$t1, or 0x12345678, this is because
+a shift by 44 will clear \$t0 to 0, when you logical or, you just get \$t1.
+
+\textbf{2.23)} The first instruction tests if \$t0 is greater than 0, which it is
+so \$t2 becomes 1.  bne will break to ELSE.  The final result will be \$t2+2, or 3.
+
+\textbf{2.24)} j can take an immidiate value of up to 26 bits, we multiply this value by 4,
+and then concatonate the first four bits from the PC counter, this means that we cannot
+change the first four bits of the PC, and cannot jump that far. beq will allow us to use
+an offset value of 16 bits. we will multiply this by four, and add to PC+4.  This does not
+even come close to a 32 bit offset, and once again we can not change the PC by this much.
+
+\textbf{2.26.1)} \$s2 acts like a counter inside a for loop, this code can be translated
+to the following C code:
+\begin{center}
+\begin{lstlisting}
+$s2 = 0;
+for($t1 = 10;$t1 > 0;$t1--) {
+  $s2 = $s2 + 2;
+}
+\end{lstlisting}
+\end{center}
+When ran this code outputs a value of 20 for s2.
+
+\textbf{2.38)} lbu is going to load the value of 0c11223344 into register \$t0.  That value
+is then stored at location 0x10000010.  it is then read from \$t2, we would read the exact
+same value, 0x11223344, since our memory looks like:
+\begin{center}
+  \begin{tabular}{|c|c|c|c|c|c|c|c|}
+    \hline
+    11 & 22 & 11 & 22 & 33 & 44 \\
+    \hline
+  \end{tabular}
+\end{center}
+
+
+\textbf{2.40)} No, since we only have 26 bits, and that is a 30 bit value.  The first 4 bits
+of the address will always be 0 because that's how big our PC is.
+
+\end{document}
