@@ -1,0 +1,220 @@
+\documentclass[12pt, notitlepage, final]{article} 
+
+\newcommand{\name}{Vince Coghlan}
+
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{latexsym}
+\usepackage{enumerate}
+\usepackage{amsthm}
+\usepackage{nccmath}
+\usepackage{setspace}
+\usepackage[pdftex]{graphicx}
+\usepackage{epstopdf}
+\usepackage[siunitx]{circuitikz}
+\usepackage{tikz}
+\usepackage{float}
+\usepackage{cancel} 
+\usepackage{setspace}
+\usepackage{overpic}
+\usepackage{mathtools}
+\usepackage{listings}
+\usepackage{color}
+
+\numberwithin{equation}{section}
+\DeclareRobustCommand{\beginProtected}[1]{\begin{#1}}
+\DeclareRobustCommand{\endProtected}[1]{\end{#1}}
+\newcommand{\dbr}[1]{d_{\mbox{#1BR}}}
+\newtheorem{lemma}{Lemma}
+\newtheorem*{corollary}{Corollary}
+\newtheorem{theorem}{Theorem}
+\newtheorem{proposition}{Proposition}
+\theoremstyle{definition}
+\newtheorem{define}{Definition}
+\newcommand{\column}[2]{
+\left( \begin{array}{ccc}
+#1 \\
+#2
+\end{array} \right)}
+
+\newdimen\digitwidth
+\settowidth\digitwidth{0}
+\def~{\hspace{\digitwidth}}
+
+\setlength{\parskip}{1pc}
+\setlength{\parindent}{0pt}
+\setlength{\topmargin}{-3pc}
+\setlength{\textheight}{9.0in}
+\setlength{\oddsidemargin}{0pc}
+\setlength{\evensidemargin}{0pc}
+\setlength{\textwidth}{6.5in}
+\newcommand{\answer}[1]{\newpage\noindent\framebox{\vbox{{\bf CSCI 4593 Spring 2014} 
+\hfill {\bf \name} \vspace{-1cm}
+\begin{center}{Homework \#3}\end{center} } }\bigskip }
+
+%absolute value code
+\DeclarePairedDelimiter\abs{\lvert}{\rvert}%
+\DeclarePairedDelimiter\norm{\lVert}{\rVert}
+\makeatletter
+\let\oldabs\abs
+\def\abs{\@ifstar{\oldabs}{\oldabs*}}
+%
+\let\oldnorm\norm
+\def\norm{\@ifstar{\oldnorm}{\oldnorm*}}
+\makeatother
+
+\def\dbar{{\mathchar'26\mkern-12mu d}}
+\def \Frac{\displaystyle\frac}
+\def \Sum{\displaystyle\sum}
+\def \Int{\displaystyle\int}
+\def \Prod{\displaystyle\prod}
+\def \P[x]{\Frac{\partial}{\partial x}}
+\def \D[x]{\Frac{d}{dx}}
+\newcommand{\PD}[2]{\frac{\partial#1}{\partial#2}}
+\newcommand{\PF}[1]{\frac{\partial}{\partial#1}}
+\newcommand{\DD}[2]{\frac{d#1}{d#2}}
+\newcommand{\DF}[1]{\frac{d}{d#1}}
+\newcommand{\fix}[2]{\left(#1\right)_#2}
+\newcommand{\ket}[1]{|#1\rangle}
+\newcommand{\bra}[1]{\langle#1|}
+\newcommand{\braket}[2]{\langle #1 | #2 \rangle}
+\newcommand{\bopk}[3]{\langle #1 | #2 | #3 \rangle}
+\newcommand{\Choose}[2]{\displaystyle {#1 \choose #2}}
+\newcommand{\proj}[1]{\ket{#1}\bra{#1}}
+\def\del{\vec{\nabla}}
+\newcommand{\avg}[1]{\langle#1\rangle}
+\newcommand{\piecewise}[4]{\left\{\beginProtected{array}{rl}#1&:#2\\#3&:#4\endProtected{array}\right.}
+\newcommand{\systeme}[2]{\left\{\beginProtected{array}{rl}#1\\#2\endProtected{array}\right.}
+\def \KE{K\!E}
+\def\Godel{G$\ddot{\mbox{o}}$del}
+
+\lstset{language=C}
+\onehalfspacing
+
+\begin{document}
+
+\answer{}
+
+\textbf{3.1)} I just did it half-byte by half-byte. $D-A=3,\;etc...$
+\begin{center}
+  \begin{tabular}{ccccc}
+  &5&E&D&4\\
+  -&0&7&A&4\\
+  \hline
+  &5&E&3&0\\
+  \end{tabular}
+\end{center}
+
+
+\textbf{3.4)} This was done in a similar fasion, except that I needed to carry a
+one in from the fourth octal number.
+\begin{center}
+  \begin{tabular}{ccccc}
+    &$\cancel{4}^3$&3&6&5\\
+  -&3&4&1&2\\
+  \hline
+  &0&7&5&3\\
+  \end{tabular}
+\end{center}
+
+
+\textbf{3.6)} 63.  Neither over or underflow, since since this number fits well within an 8 bit value.
+
+\textbf{3.12)} $62 \times 12 = 744$, lets see if we can do this using the process that a computer uses.
+\begin{center}
+  \begin{tabular}{| c | l | c | c | c |}
+    \hline
+    Iteration & Step & Multiplier & Multiplicant & Product \\
+    \hline
+    \hline
+    0 & Initial Values & 1100 & 0000111110 & 0000000000 \\
+    \hline
+    1 & 0 $\Rightarrow$ Nop & 1100 & 0000111110 & 0000000000 \\
+      & Shift left m-cand & 1100 & 0001111100 & 0000000000 \\
+      & Shift right m-plier & 0110 & 0001111100 & 0000000000 \\
+    \hline
+    2 & 0 $\Rightarrow$ Nop & 0110 & 0001111100 & 0000000000 \\
+      & Shift left m-cand & 0110 & 0011111000 & 0000000000 \\
+      & Shift right m-plier & 0011 & 0011111000 & 0000000000 \\
+    \hline
+    3 & 1 $\Rightarrow$ add to product & 0011 & 0011111000 & 0011111000 \\
+      & Shift left m-cand & 0011 & 0111110000 & 0011111000 \\
+      & Shift right m-plier & 0001 & 0111110000 & 0011111000 \\
+    \hline
+    4 & 1 $\Rightarrow$ add to product & 0001 & 0111110000 & 1011101000 \\
+      & Shift left m-cand & 0001 & 1111100000 & 1011101000 \\
+      & Shift right m-plier & 0000 & 1111100000 & 1011101000 \\
+    \hline
+
+  \end{tabular}
+\end{center}
+Since we are out of multiplier, we can see that the product is indeed 744.
+
+\textbf{3.17)} We can represent $\text{0x}33 \times \text{0x}55$ as $(2\times2\times2\times2\times2\times2 + \text{0x}15)\times\text{0x}33$ or
+\[
+  (\text{0x}33 << 6) + (2\times2\times2\times2 + \text{0x}5)\times\text{0x}33
+\]
+\[
+  (\text{0x}33 << 6) + (\text{0x}33 << 4) + (\text{0x}33 << 2) + \text{0x}33
+\]
+\[
+  = 0x10EF \text{ or } 4335
+\]
+
+\textbf{3.19)}
+\begin{center}
+  \begin{tabular}{| c | l | c | c | c |}
+    \hline
+    Iteration & Step & Quotient & Divisor & Remainder \\
+    \hline
+    \hline
+    0 & Initial Values & 0000 & 1000100000 & 00111100 \\
+    \hline
+    1 & rem=rem-div & 0000 & 1000100000 & \text{negative} \\
+      & rem$<$0$\Rightarrow$+Div, sll Q, $Q_0=0$ & 0000 & 1000100000 & 00111100 \\
+      & shift div right & 0000 & 0100010000 & 00111100 \\
+    \hline
+    2 & rem=rem-div & 0000 & 0100010000 & \text{negative} \\
+      & rem$<$0$\Rightarrow$+Div, sll Q, $Q_0=0$ & 0000 & 0100010000 & 00111100 \\
+      & shift div right & 0000 & 0010001000 & 00111100 \\
+    \hline
+    3 & rem=rem-div & 0000 & 0010001000 & \text{negative} \\
+      & rem$<$0$\Rightarrow$+Div, sll Q, $Q_0=0$ & 0000 & 0010001000 & 00111100 \\
+      & shift div right & 0000 & 0001000100 & 00111100 \\
+    \hline
+    4 & rem=rem-div & 0000 & 0001000100 & \text{negative} \\
+      & rem$<$0$\Rightarrow$+Div, sll Q, $Q_0=0$ & 0000 & 0001000100 & 00111100 \\
+      & shift div right & 0000 & 0000100010 & 00111100 \\
+    \hline
+    5 & rem=rem-div & 0000 & 0000100010 & 00011010\\
+      & rem$\geq 0 \Rightarrow$ sll Q, $Q_0=1$ & 0001 & 0000100010 & 00011010 \\
+      & shift div right & 0001 & 0000010001 & 00011010 \\
+    \hline
+    6 & rem=rem-div & 0001 & 0000010001 & 00001001\\
+      & rem$\geq 0 \Rightarrow$ sll Q, $Q_0=1$ & 0011 & 0000010001 & 00001001 \\
+      & shift div right & 0011 & 0000001000 & 00001001 \\
+    \hline
+  \end{tabular}
+\end{center}
+
+And our answer is $q = 3$ and $r = 11$.  Lo and behold, if we pull out a calculator and
+type in $3*21 + 11$ we will attain 74.
+
+\textbf{3.22)} 0x0C000000 Gives us that $s=0$, $e=24$, and $m=1$ ($1$.fraction). This will
+be:
+\[
+  (-1)^0\times 1\times 2^{24-127} \approx 9.8607613\cdot10^{-32}
+\]
+
+\textbf{3.23)} First I will figure out the fraction like so:
+\[
+  63.25 = 2^5+2^4+2^3+2^2+2^1+2^0+2^{-2}
+\]
+Which is going to look like: 111111.01.  Our mantissa bit will therefore take the form
+111110100000...  We know that the exponent will need to be the largest bit, $2^5$ so we
+can know that the exponent field is 5+127 or 10000100.  The sign bit is obviously zero.
+Our number is therefor: 01000010011111010000000000000000.  It is easier to read 0x427d0000.
+
+
+\end{document}
