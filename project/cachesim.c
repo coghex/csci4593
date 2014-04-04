@@ -2,66 +2,17 @@
 #include <getopt.h>
 #include <math.h>
 #include <stdlib.h>
-
-struct Block {
-  int valid;
-  int dirty;
-  unsigned long tag[];
-};
-struct Cache {
-  int hits;
-  int misses;
-  int reads;
-  int writes;
-
-  int cachesize;
-  int blocksize;
-  int ways;
-
-  int hittime;
-  int misstime;
-
-  int assoc;
-
-  int numblocks;
-  int indexsize;
-  int bytesize;
-  int tagsize;
-
-  struct Block *block;
-};
+#include "cache.h"
 
 
-struct Cache * initcache(int cachesize, int blocksize, int hittime, int misstime, int assoc, int ways) {
-  struct Cache *endcache;
-
-  endcache = (struct Cache *)malloc(sizeof(struct Cache));
-
-  endcache->hits=0;
-  endcache->misses=0;
-  endcache->reads=0;
-  endcache->writes=0;
-  endcache->cachesize=cachesize;
-  endcache->blocksize=blocksize;
-  endcache->ways=1;
-  endcache->hittime=hittime;
-  endcache->misstime=misstime;
-  endcache->assoc=assoc;
-  endcache->numblocks=cachesize/blocksize;
-  endcache->indexsize=log(endcache->numblocks)/log(2);
-  endcache->bytesize=log(endcache->blocksize/8)/log(2);
-  endcache->tagsize=38-endcache->bytesize-endcache->indexsize;
-  endcache->block=(struct Block*)malloc(sizeof(endcache->numblocks*sizeof(struct Block)));
-
-  return endcache;
-}
 
 int main(int argc, char* argv[]){
   char op;
   unsigned long addr;
   int size;
-  int i, j, incache;
+  int i, j, oldbyte, ref;
   int c;
+  int incache[100];
   int argvar=2;
   int isc=0;
   int l2buswidth=16;
@@ -154,38 +105,14 @@ int main(int argc, char* argv[]){
       index = (((~((~0)<<icache->indexsize))<<icache->bytesize)&addr)>>(icache->bytesize);
       byte = (~((~0)<<icache->bytesize))&addr;
 
-      int oldbyte = byte;
-      incache=1;
-      for (j=0;j<=(int)size/4;j++) {
-        for (i=byte;i<icache->numblocks;i++) {
-          if ((icache->block+(index+j)*sizeof(struct Block))->tag[i] != tag) {
-            incache=0;
-          }
-        }
-        byte=0;
-      }
+      reead(icache, tag, index, byte, size);
 
-      byte=oldbyte;
-      if (!incache) {
-        for (j=0;j<=(int)size/4;j++) {
-          for (i=byte;i<icache->numblocks;i++){
-            ((icache->block+(index+j)*sizeof(struct Block)))->tag[i]= tag;
-          }
-          miss++;
-          byte=0;
+        if (verbose) {
+          printf("  tag: %X index: %X byte: %X\n", tag, index, byte);
+          printf("  misses: %d, hits: %d\n", icache->misses, icache->hits);
         }
-      }
-      else {
-        hit++;
-      }
-      byte=oldbyte;
-
-      if (verbose) {
-        printf("  tag: %X index: %X byte: %X\n", tag, index, byte);
-        printf("  misses: %d, hits: %d\n", miss, hit);
       }
     }
-  }
 
   free(icache->block);
   free(icache);
