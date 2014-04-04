@@ -8,7 +8,7 @@ struct Block {
   int valid;
   int dirty;
   struct Block *next;
-  unsigned long *tag;
+  unsigned int *tag;
 };
 struct Cache {
   int hits;
@@ -33,7 +33,12 @@ struct Cache {
   struct Block *block;
 };
 
+struct Cache *icache;
+struct Cache *dcache;
+struct Cache *l2cache;
+
 struct Cache * initcache(int cachesize, int blocksize, int hittime, int misstime, int assoc, int ways);
-int reead(struct Cache *, unsigned int tag, unsigned int index, unsigned int byte, int size);
+int reead(struct Cache *, unsigned int tag, unsigned int index, unsigned int byte, int size, int level, unsigned long addr);
+void freecache();
 
 #endif

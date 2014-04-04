@@ -4,8 +4,6 @@ struct Cache * initcache(int cachesize, int blocksize, int hittime, int misstime
   struct Cache *endcache;
   struct Block *block;
   int i,j;
-  printf("hello\n");
-
   endcache = (struct Cache *)malloc(sizeof(struct Cache));
 
   endcache->hits=0;
@@ -25,17 +23,19 @@ struct Cache * initcache(int cachesize, int blocksize, int hittime, int misstime
   endcache->block=(struct Block*)malloc(sizeof(struct Block));
   block=endcache->block;
   block->tag=malloc((endcache->blocksize/8)*sizeof(unsigned int));
-  for (i=1;i<endcache->numblocks;i++){
+  for (i=1;i<=endcache->numblocks;i++){
     block->next=(struct Block*)malloc(sizeof(struct Block));
-    block->tag=malloc((endcache->blocksize/8)*sizeof(unsigned int));
     block=block->next;
+    block->tag=(unsigned int *)malloc((endcache->blocksize/8)*sizeof(unsigned int));
   }
 
   return endcache;
 }
 
-int reead(struct Cache * cache, unsigned int tag, unsigned int index, unsigned int byte, int size) {
+int reead(struct Cache * cache, unsigned int tag, unsigned int index, unsigned int byte, int size, int level, unsigned long addr) {
+  cache->reads++;
   int i, j, ref, tempbyte, t;
+  unsigned int l2tag, l2index, l2byte;
   unsigned int readtag;
   struct Block* block;
   if ((size+byte)%(cache->blocksize/8)) {
@@ -44,11 +44,13 @@ int reead(struct Cache * cache, unsigned int tag, unsigned int index, unsigned i
   else {
     ref = (int)(size+byte)/(cache->blocksize/8);
   }
+
   block = cache->block;
-  for (i=0;i<(int)index;i++) {
+  for (i=0;i<((int)index%cache->numblocks);i++) {
     block = block->next;
   }
   tempbyte=byte;
+  //printf("  level: %d numblocks: %d tag: %X index: %X byte: %X\n", level, cache->numblocks, tag, index, byte);
   for (j=0;j<ref;j++){
     for (i=tempbyte;i<cache->blocksize/8;i++) {
       if (block->tag[i] == tag) {
@@ -57,8 +59,20 @@ int reead(struct Cache * cache, unsigned int tag, unsigned int index, unsigned i
       }
       else {
         cache->misses++;
-        for (i=tempbyte;i<cache->blocksize/8;i++){
-          block->tag[i] = tag;
+        if (level==1){
+          l2tag = (((~0)<<(l2cache->indexsize+l2cache->bytesize))&addr)>>(l2cache->indexsize+l2cache->bytesize);
+          l2index = (((~((~0)<<l2cache->indexsize))<<l2cache->bytesize)&addr)>>(l2cache->bytesize);
+          l2byte = (~((~0)<<l2cache->bytesize))&addr;
+
+          reead(l2cache, l2tag, l2index, l2byte, size, 2, addr);
+          for (i=tempbyte;i<cache->blocksize/8;i++){
+            block->tag[i] = tag;
+          }
+        }
+        else if (level==2) {
+          for (i=tempbyte;i<cache->blocksize/8;i++){
+            block->tag[i] = tag;
+          }
         }
       }
     }
@@ -67,4 +81,34 @@ int reead(struct Cache * cache, unsigned int tag, unsigned int index, unsigned i
   }
 
   return 1;
+}
+
+void freecache() {
+  int i;
+  struct Block *temp1, *temp2;
+
+  temp1=icache->block;
+  for (i=0;i<=icache->numblocks;i++) {
+    free(temp1->tag);
+    temp2=temp1->next;
+    free(temp1);
+    temp1=temp2;
+  }
+  free(icache);
+  temp1=dcache->block;
+  for (i=0;i<=dcache->numblocks;i++) {
+    free(temp1->tag);
+    temp2=temp1->next;
+    free(temp1);
+    temp1=temp2;
+  }
+  free(dcache);
+  temp1=l2cache->block;
+  for (i=0;i<=l2cache->numblocks;i++) {
+    free(temp1->tag);
+    temp2=temp1->next;
+    free(temp1);
+    temp1=temp2;
+  }
+  free(l2cache);
 }

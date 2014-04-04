@@ -2,8 +2,8 @@
 #include <getopt.h>
 #include <math.h>
 #include <stdlib.h>
+#include <time.h>
 #include "cache.h"
-
 
 
 int main(int argc, char* argv[]){
@@ -24,10 +24,8 @@ int main(int argc, char* argv[]){
   unsigned int tag, index, byte, miss=0, hit=0;
   FILE *f;
   static char usage[] = "usage: cat <traces> | ./cachesim [-hc] <config_file>\n";
-
-  struct Cache *icache;
-  struct Cache *dcache;
-  struct Cache *l2cache;
+  time_t begin, end;
+  int totalrefs;
 
   // code to retrive command flags
   while ((c=getopt(argc, argv, "hcv"))!=-1) {
@@ -55,7 +53,6 @@ int main(int argc, char* argv[]){
   icache = initcache(8192, 32, 1, 1, 1, 1);
   dcache = initcache(8192, 32, 1, 1, 1, 1);
   l2cache = initcache(32768, 64, 5, 8, 1, 1);
-
 
   // This will handle all the various inputs
   if (argc > argvar) {
@@ -96,6 +93,7 @@ int main(int argc, char* argv[]){
     printf("Icache block index = %d : number of blocks = 2^%d : addr size = %d\n\n", icache->bytesize, icache->indexsize, icache->tagsize);
   }
 
+  begin=clock();
   while (scanf("%c %lX %d\n",&op,&addr,&size)==3) {
     if (verbose) {
       printf("%c,%lX,%d\n",op,addr,size);
@@ -104,22 +102,22 @@ int main(int argc, char* argv[]){
       tag = (((~0)<<(icache->indexsize+icache->bytesize))&addr)>>(icache->indexsize+icache->bytesize);
       index = (((~((~0)<<icache->indexsize))<<icache->bytesize)&addr)>>(icache->bytesize);
       byte = (~((~0)<<icache->bytesize))&addr;
-
-      reead(icache, tag, index, byte, size);
-
-        if (verbose) {
-          printf("  tag: %X index: %X byte: %X\n", tag, index, byte);
-          printf("  misses: %d, hits: %d\n", icache->misses, icache->hits);
-        }
+      reead(icache, tag, index, byte, size, 1, addr);
+      if (verbose) {
+        printf("  L1misses: %d, L1hits: %d\n", icache->misses, icache->hits);
+        printf("  L2misses: %d, L2hits: %d\n", l2cache->misses, l2cache->hits);
       }
     }
+  }
+  end=clock();
 
-  free(icache->block);
-  free(icache);
-  free(dcache->block);
-  free(dcache);
-  free(l2cache->block);
-  free(l2cache);
+  totalrefs=(icache->reads+dcache->reads+dcache->writes+l2cache->reads+l2cache->writes);
+  printf("Execute time: %d; Total Refs: %d\n", (int)(end-begin), totalrefs);
+  //This needs to be fixed, doesnt distiguish between inst and data l2 refs
+  printf("Instruction Refs: %d; Data Refs: %d\n\n", icache->reads, totalrefs-icache->reads);
+
+
+  freecache();
   return 0;
 }
 
