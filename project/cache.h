@@ -3,6 +3,7 @@
 #include<stdlib.h>
 #include<math.h>
 #include<stdio.h>
+#include<time.h>
 
 struct Block {
   int valid;
@@ -30,6 +31,13 @@ struct Cache {
   int bytesize;
   int tagsize;
 
+  int irefs;
+  int drefs;
+
+  int itime;
+  int rtime;
+  int wtime;
+
   struct Block *block;
 };
 
@@ -38,7 +46,7 @@ struct Cache *dcache;
 struct Cache *l2cache;
 
 struct Cache * initcache(int cachesize, int blocksize, int hittime, int misstime, int assoc, int ways);
-int reead(struct Cache *, unsigned int tag, unsigned int index, unsigned int byte, int size, int level, unsigned long addr);
+int reead(struct Cache *, unsigned int tag, unsigned int index, unsigned int byte, int size, int level, unsigned long addr, char type);
 void freecache();
 
 #endif

@@ -25,7 +25,7 @@ int main(int argc, char* argv[]){
   FILE *f;
   static char usage[] = "usage: cat <traces> | ./cachesim [-hc] <config_file>\n";
   time_t begin, end;
-  int totalrefs;
+  int totalrefs, totalreftypes, totaltime;
 
   // code to retrive command flags
   while ((c=getopt(argc, argv, "hcv"))!=-1) {
@@ -102,7 +102,7 @@ int main(int argc, char* argv[]){
       tag = (((~0)<<(icache->indexsize+icache->bytesize))&addr)>>(icache->indexsize+icache->bytesize);
       index = (((~((~0)<<icache->indexsize))<<icache->bytesize)&addr)>>(icache->bytesize);
       byte = (~((~0)<<icache->bytesize))&addr;
-      reead(icache, tag, index, byte, size, 1, addr);
+      reead(icache, tag, index, byte, size, 1, addr, op);
       if (verbose) {
         printf("  L1misses: %d, L1hits: %d\n", icache->misses, icache->hits);
         printf("  L2misses: %d, L2hits: %d\n", l2cache->misses, l2cache->hits);
@@ -111,11 +111,21 @@ int main(int argc, char* argv[]){
   }
   end=clock();
 
-  totalrefs=(icache->reads+dcache->reads+dcache->writes+l2cache->reads+l2cache->writes);
-  printf("Execute time: %d; Total Refs: %d\n", (int)(end-begin), totalrefs);
-  //This needs to be fixed, doesnt distiguish between inst and data l2 refs
-  printf("Instruction Refs: %d; Data Refs: %d\n\n", icache->reads, totalrefs-icache->reads);
-
+  totaltime=icache->itime+icache->rtime+icache->wtime+dcache->itime+dcache->rtime+dcache->wtime+l2cache->itime+l2cache->rtime+l2cache->wtime;
+  totalrefs=(icache->irefs+dcache->drefs+l2cache->irefs+l2cache->drefs);
+  printf("Execute time: %d; Total Refs: %d\n", icache->itime, totalrefs);
+  printf("Instruction Refs: %d; Data Refs: %d\n\n", icache->irefs+l2cache->irefs, dcache->drefs+l2cache->drefs);
+  printf("Number of reference types:  [Percentage]\n");
+  totalreftypes=icache->reads+icache->writes+dcache->reads+dcache->writes+l2cache->reads+l2cache->writes;
+  printf("  Reads = %d    [%d%%]\n", dcache->reads+l2cache->drefs, 100*(dcache->reads+l2cache->drefs)/totalreftypes);
+  printf("  Writes = %d    [%d%%]\n", dcache->writes+l2cache->writes, 100*(dcache->writes+l2cache->writes)/totalreftypes);
+  printf("  Inst. = %d    [%d%%]\n", icache->reads+l2cache->irefs, 100*(icache->reads+l2cache->irefs)/totalreftypes);
+  printf("  Total = %d\n\n", totalreftypes);
+  printf("Total cycles for activities:  [Percentage]\n");
+  printf("  Reads = %d    [%d%%]\n", dcache->rtime+l2cache->rtime, 100*(dcache->rtime+l2cache->rtime)/totaltime);
+  printf("  Writes = %d    [%d%%]\n", dcache->wtime+l2cache->wtime, 100*(dcache->wtime+l2cache->wtime)/totaltime);
+  printf("  Inst. = %d    [%d%%]\n", icache->itime+l2cache->itime, 100*(icache->itime+l2cache->itime)/totaltime);
+  printf("  Total = %d\n\n", totaltime);
 
   freecache();
   return 0;

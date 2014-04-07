@@ -10,6 +10,11 @@ struct Cache * initcache(int cachesize, int blocksize, int hittime, int misstime
   endcache->misses=0;
   endcache->reads=0;
   endcache->writes=0;
+  endcache->irefs=0;
+  endcache->drefs=0;
+  endcache->itime=0;
+  endcache->rtime=0;
+  endcache->wtime=0;
   endcache->cachesize=cachesize;
   endcache->blocksize=blocksize;
   endcache->ways=1;
@@ -32,12 +37,14 @@ struct Cache * initcache(int cachesize, int blocksize, int hittime, int misstime
   return endcache;
 }
 
-int reead(struct Cache * cache, unsigned int tag, unsigned int index, unsigned int byte, int size, int level, unsigned long addr) {
+int reead(struct Cache * cache, unsigned int tag, unsigned int index, unsigned int byte, int size, int level, unsigned long addr, char type) {
   cache->reads++;
   int i, j, ref, tempbyte, t;
   unsigned int l2tag, l2index, l2byte;
   unsigned int readtag;
   struct Block* block;
+  time_t begin, end;
+  begin = clock();
   if ((size+byte)%(cache->blocksize/8)) {
     ref = (int)(size+byte)/(cache->blocksize/8)+1;
   }
@@ -50,8 +57,10 @@ int reead(struct Cache * cache, unsigned int tag, unsigned int index, unsigned i
     block = block->next;
   }
   tempbyte=byte;
-  //printf("  level: %d numblocks: %d tag: %X index: %X byte: %X\n", level, cache->numblocks, tag, index, byte);
   for (j=0;j<ref;j++){
+    if (type=='I') {
+      cache->irefs++;
+    }
     for (i=tempbyte;i<cache->blocksize/8;i++) {
       if (block->tag[i] == tag) {
         cache->hits++;
@@ -64,7 +73,7 @@ int reead(struct Cache * cache, unsigned int tag, unsigned int index, unsigned i
           l2index = (((~((~0)<<l2cache->indexsize))<<l2cache->bytesize)&addr)>>(l2cache->bytesize);
           l2byte = (~((~0)<<l2cache->bytesize))&addr;
 
-          reead(l2cache, l2tag, l2index, l2byte, size, 2, addr);
+          reead(l2cache, l2tag, l2index, l2byte, size, 2, addr, type);
           for (i=tempbyte;i<cache->blocksize/8;i++){
             block->tag[i] = tag;
           }
@@ -78,6 +87,16 @@ int reead(struct Cache * cache, unsigned int tag, unsigned int index, unsigned i
     }
     tempbyte=0;
     block=block->next;
+  }
+  end = clock();
+  if (type=='I'){
+    cache->itime+=(end-begin);
+  }
+  else if (type=='R'){
+    cache->rtime+=(end-begin);
+  }
+  else if (type=='W'){
+    cache->wtime+=(end-begin);
   }
 
   return 1;
