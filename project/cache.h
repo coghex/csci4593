@@ -38,6 +38,8 @@ struct Cache {
   int rtime;
   int wtime;
 
+  int cost;
+
   struct Block *block;
 };
 
