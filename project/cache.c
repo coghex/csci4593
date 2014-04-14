@@ -17,12 +17,12 @@ struct Cache * initcache(int cachesize, int blocksize, int hittime, int misstime
   endcache->rtime=0;
   endcache->wtime=0;
   endcache->cachesize=cachesize;
-  endcache->blocksize=(blocksize/assoc);
+  endcache->blocksize=(blocksize);
   endcache->ways=1;
   endcache->hittime=hittime;
   endcache->misstime=misstime;
   endcache->assoc=assoc;
-  endcache->numblocks=(cachesize/blocksize);
+  endcache->numblocks=(cachesize/blocksize)/assoc;
   endcache->indexsize=log(endcache->numblocks)/log(2);
   endcache->bytesize=log(endcache->blocksize/8)/log(2);
   endcache->tagsize=38-endcache->bytesize-endcache->indexsize;
