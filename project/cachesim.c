@@ -59,9 +59,9 @@ int main(int argc, char* argv[]){
   }
 
   // This will initialize the caches with their default values
-  icache = initcache(8192, 32, 1, 1, 1, 1);
-  dcache = initcache(8192, 32, 1, 1, 1, 1);
-  l2cache = initcache(32768, 64, 5, 8, 1, 1);
+  icache = initcache(8192, 32*8, 1, 1, 1, 1);
+  dcache = initcache(8192, 32*8, 1, 1, 1, 1);
+  l2cache = initcache(32768, 64*8, 5, 8, 1, 1);
 
   // This will handle all the various inputs
   if (argc > argvar) {
@@ -161,6 +161,9 @@ int main(int argc, char* argv[]){
       tag = (((~0)<<(icache->indexsize+icache->bytesize))&addr)>>(icache->indexsize+icache->bytesize);
       index = (((~((~0)<<icache->indexsize))<<icache->bytesize)&addr)>>(icache->bytesize);
       byte = (~((~0)<<icache->bytesize))&addr;
+      if (verbose) {
+        printf("tag: %X index: %X byte: %X\n", tag, index, byte);
+      }
       reead(icache, tag, index, byte, size, 1, addr, op);
       if (verbose) {
         printf("  L1misses: %d, L1hits: %d\n", icache->misses, icache->hits);

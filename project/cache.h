@@ -9,6 +9,7 @@ struct Block {
   int valid;
   int dirty;
   struct Block *next;
+  struct Block *nextset;
   unsigned int *tag;
 };
 struct Cache {

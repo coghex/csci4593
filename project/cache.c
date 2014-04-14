@@ -3,7 +3,8 @@
 struct Cache * initcache(int cachesize, int blocksize, int hittime, int misstime, int assoc, int ways) {
   struct Cache *endcache;
   struct Block *block;
-  int i,j;
+  struct Block *temp;
+  int i,j,k;
   endcache = (struct Cache *)malloc(sizeof(struct Cache));
 
   endcache->hits=0;
@@ -21,18 +22,35 @@ struct Cache * initcache(int cachesize, int blocksize, int hittime, int misstime
   endcache->hittime=hittime;
   endcache->misstime=misstime;
   endcache->assoc=assoc;
-  endcache->numblocks=cachesize/blocksize;
+  endcache->numblocks=(cachesize/blocksize)/assoc;
   endcache->indexsize=log(endcache->numblocks)/log(2);
   endcache->bytesize=log(endcache->blocksize/8)/log(2);
   endcache->tagsize=38-endcache->bytesize-endcache->indexsize;
   endcache->block=(struct Block*)malloc(sizeof(struct Block));
   block=endcache->block;
   block->tag=malloc((endcache->blocksize/8)*sizeof(unsigned int));
-  for (i=1;i<=endcache->numblocks;i++){
+  for (i=1;i<=(endcache->numblocks)*(assoc);i++){
     block->next=(struct Block*)malloc(sizeof(struct Block));
     block=block->next;
     block->tag=(unsigned int *)malloc((endcache->blocksize/8)*sizeof(unsigned int));
   }
+
+  block = endcache->block;
+  for (j=0; j<assoc; j++) {
+    for (i=0; i<endcache->blocksize;i++) {
+      if (j==assoc-1) {
+        block->nextset=NULL;
+      }
+      else {
+        temp = block;
+        for (k=i;k<endcache->numblocks;k++) {
+          temp=temp->next;
+        }
+        block->nextset=temp;
+      }
+    }
+  }
+
 
   return endcache;
 }
