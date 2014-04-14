@@ -14,19 +14,18 @@ int main(int argc, char* argv[]){
   char op;
   unsigned long addr;
   int size;
-  int i, j, oldbyte, ref;
+  int i;
   int c;
-  int incache[100];
   int argvar=2;
   int isc=0;
-  int l2buswidth=16;
-  int memsendaddrt=10;
+  //int l2buswidth=16;
+  //int memsendaddrt=10;
   int memreadyt=50;
   int memchunkt=20;
   int memchunk=16;
   int verbose = 0;
   int memcost;
-  unsigned int tag, index, byte, miss=0, hit=0;
+  unsigned int tag, index, byte;
   FILE *f;
   struct winsize w;
   int width;
@@ -59,9 +58,9 @@ int main(int argc, char* argv[]){
   }
 
   // This will initialize the caches with their default values
-  icache = initcache(8192, 32*8, 1, 1, 1, 1);
-  dcache = initcache(8192, 32*8, 1, 1, 1, 1);
-  l2cache = initcache(32768, 64*8, 5, 8, 1, 1);
+  icache = initcache(8192, 32*8, 1, 1, 16);
+  dcache = initcache(8192, 32*8, 1, 1, 1);
+  l2cache = initcache(32768, 64*8, 5, 8, 1);
 
   // This will handle all the various inputs
   if (argc > argvar) {
@@ -141,13 +140,13 @@ int main(int argc, char* argv[]){
   printf("\n\n");
 
   printf("Memory System:\n");
-  printf("  Dcache size = %d : ways = %d : block size = %d\n", dcache->cachesize, dcache->ways, dcache->blocksize);
-  printf("  Icache size = %d : ways = %d : block size = %d\n", icache->cachesize, icache->ways, icache->blocksize);
-  printf("  L2 - cache size = %d : ways = %d : block size = %d\n", l2cache->cachesize, l2cache->ways, l2cache->blocksize);
+  printf("  Dcache size = %d : ways = %d : block size = %d\n", dcache->cachesize, dcache->assoc, dcache->blocksize);
+  printf("  Icache size = %d : ways = %d : block size = %d\n", icache->cachesize, icache->assoc, icache->blocksize);
+  printf("  L2 - cache size = %d : ways = %d : block size = %d\n", l2cache->cachesize, l2cache->assoc, l2cache->blocksize);
   printf("  Memory ready time = %d : chunksize = %d : chunktime = %d\n\n", memreadyt, memchunk, memchunkt);
 
   if (verbose) {
-    printf("Icache block index = %d : number of blocks = 2^%d : addr size = %d\n\n", icache->bytesize, icache->indexsize, icache->tagsize);
+    printf("Icache block index = %d : number of blocks = 2^%d : tag size = %d\n\n", icache->bytesize, icache->indexsize, icache->tagsize);
   }
 
   memcost = (int)((200/(memreadyt/50.0)-150) + (100*(memchunk/16.0)-75));

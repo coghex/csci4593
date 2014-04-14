@@ -48,7 +48,7 @@ struct Cache *icache;
 struct Cache *dcache;
 struct Cache *l2cache;
 
-struct Cache * initcache(int cachesize, int blocksize, int hittime, int misstime, int assoc, int ways);
+struct Cache * initcache(int cachesize, int blocksize, int hittime, int misstime, int assoc);
 int reead(struct Cache *, unsigned int tag, unsigned int index, unsigned int byte, int size, int level, unsigned long addr, char type);
 void freecache();
 

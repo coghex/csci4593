@@ -1,6 +1,6 @@
 #include "cache.h"
 
-struct Cache * initcache(int cachesize, int blocksize, int hittime, int misstime, int assoc, int ways) {
+struct Cache * initcache(int cachesize, int blocksize, int hittime, int misstime, int assoc) {
   struct Cache *endcache;
   struct Block *block;
   struct Block *temp;
@@ -17,12 +17,12 @@ struct Cache * initcache(int cachesize, int blocksize, int hittime, int misstime
   endcache->rtime=0;
   endcache->wtime=0;
   endcache->cachesize=cachesize;
-  endcache->blocksize=blocksize;
+  endcache->blocksize=(blocksize/assoc);
   endcache->ways=1;
   endcache->hittime=hittime;
   endcache->misstime=misstime;
   endcache->assoc=assoc;
-  endcache->numblocks=(cachesize/blocksize)/assoc;
+  endcache->numblocks=(cachesize/blocksize);
   endcache->indexsize=log(endcache->numblocks)/log(2);
   endcache->bytesize=log(endcache->blocksize/8)/log(2);
   endcache->tagsize=38-endcache->bytesize-endcache->indexsize;
@@ -37,7 +37,7 @@ struct Cache * initcache(int cachesize, int blocksize, int hittime, int misstime
 
   block = endcache->block;
   for (j=0; j<assoc; j++) {
-    for (i=0; i<endcache->blocksize;i++) {
+    for (i=0; i<endcache->numblocks;i++) {
       if (j==assoc-1) {
         block->nextset=NULL;
       }
@@ -46,6 +46,7 @@ struct Cache * initcache(int cachesize, int blocksize, int hittime, int misstime
         for (k=i;k<endcache->numblocks;k++) {
           temp=temp->next;
         }
+        printf("setting %d, %d\n", j, i);
         block->nextset=temp;
       }
     }
@@ -57,10 +58,9 @@ struct Cache * initcache(int cachesize, int blocksize, int hittime, int misstime
 
 int reead(struct Cache * cache, unsigned int tag, unsigned int index, unsigned int byte, int size, int level, unsigned long addr, char type) {
   cache->reads++;
-  int i, j, ref, tempbyte, t;
+  int i, j, ref, tempbyte, k;
   unsigned int l2tag, l2index, l2byte;
-  unsigned int readtag;
-  struct Block* block;
+  struct Block *block, *temp;
   time_t begin, end;
   begin = clock();
   if ((size+byte)%(cache->blocksize/8)) {
@@ -80,31 +80,41 @@ int reead(struct Cache * cache, unsigned int tag, unsigned int index, unsigned i
       cache->irefs++;
     }
     for (i=tempbyte;i<cache->blocksize/8;i++) {
-      if (block->tag[i] == tag) {
-        cache->hits++;
-        i=cache->blocksize/8;
-      }
-      else {
-        cache->misses++;
-        if (level==1){
-          l2tag = (((~0)<<(l2cache->indexsize+l2cache->bytesize))&addr)>>(l2cache->indexsize+l2cache->bytesize);
-          l2index = (((~((~0)<<l2cache->indexsize))<<l2cache->bytesize)&addr)>>(l2cache->bytesize);
-          l2byte = (~((~0)<<l2cache->bytesize))&addr;
+      temp=block;
+      for (k=0;k<cache->assoc;k++) {
+        if (block->tag[i]==tag) {
+          cache->hits++;
+          i=cache->blocksize/8;
+          k=cache->assoc;
+        }
+        else {
+          if (block->nextset==NULL) {
+            cache->misses++;
+            if (level==1){
+              l2tag = (((~0)<<(l2cache->indexsize+l2cache->bytesize))&addr)>>(l2cache->indexsize+l2cache->bytesize);
+              l2index = (((~((~0)<<l2cache->indexsize))<<l2cache->bytesize)&addr)>>(l2cache->bytesize);
+              l2byte = (~((~0)<<l2cache->bytesize))&addr;
 
-          reead(l2cache, l2tag, l2index, l2byte, size, 2, addr, type);
-          for (i=tempbyte;i<cache->blocksize/8;i++){
-            block->tag[i] = tag;
+              reead(l2cache, l2tag, l2index, l2byte, size, 2, addr, type);
+              for (i=tempbyte;i<cache->blocksize/8;i++){
+                block->tag[i] = tag;
+              }
+            }
+            else if (level==2) {
+              for (i=tempbyte;i<cache->blocksize/8;i++){
+                block->tag[i] = tag;
+              }
+            }
+            k=cache->assoc;
           }
-        }
-        else if (level==2) {
-          for (i=tempbyte;i<cache->blocksize/8;i++){
-            block->tag[i] = tag;
+          else {
+            block = block->nextset;
           }
         }
       }
+      block=temp->next;
     }
     tempbyte=0;
-    block=block->next;
   }
   end = clock();
   if (type=='I'){
