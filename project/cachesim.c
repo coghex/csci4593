@@ -34,6 +34,7 @@ int main(int argc, char* argv[]){
   int totalrefs, totalreftypes, totaltime;
   int ind;
   char ins[32];
+  struct Block * temp;
 
   // code to retrive command flags
   while ((c=getopt(argc, argv, "hcv"))!=-1) {
@@ -58,7 +59,7 @@ int main(int argc, char* argv[]){
   }
 
   // This will initialize the caches with their default values
-  icache = initcache(8192, 32*8, 1, 1, 8);
+  icache = initcache(8192, 32*8, 1, 1, 1);
   dcache = initcache(8192, 32*8, 1, 1, 1);
   l2cache = initcache(32768, 64*8, 5, 8, 1);
 
@@ -215,6 +216,19 @@ int main(int argc, char* argv[]){
   }
   printf("\n");
 
+  if (verbose) {
+    printf("Cache Contents\n");
+    printf("Memory Level:  L1i\n");
+    temp = icache->block;
+    for (c=0;c<icache->numblocks;c++) {
+      for (i=0;i<(icache->blocksize/8);i++) {
+        if (temp->tag[i] != 0) {
+          printf("index: %X, tag: %X\n", c, temp->tag[i]);
+        }
+      }
+    temp = temp->next;
+    }
+  }
 
   freecache();
   return 0;

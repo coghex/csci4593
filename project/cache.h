@@ -20,7 +20,7 @@ struct Cache {
 
   int cachesize;
   int blocksize;
-  int ways;
+  int bussize;
 
   int hittime;
   int misstime;

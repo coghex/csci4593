@@ -18,7 +18,6 @@ struct Cache * initcache(int cachesize, int blocksize, int hittime, int misstime
   endcache->wtime=0;
   endcache->cachesize=cachesize;
   endcache->blocksize=(blocksize);
-  endcache->ways=1;
   endcache->hittime=hittime;
   endcache->misstime=misstime;
   endcache->assoc=assoc;
