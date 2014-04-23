@@ -59,8 +59,8 @@ int main(int argc, char* argv[]){
   }
 
   // This will initialize the caches with their default values
-  icache = initcache(8192, 32, 1, 1, 256);
-  dcache = initcache(8192, 32, 1, 1, 2);
+  icache = initcache(8192, 32, 1, 1, 1);
+  dcache = initcache(8192, 32, 1, 1, 1);
   l2cache = initcache(32768, 64, 5, 8, 1);
 
   // This will handle all the various inputs
@@ -219,13 +219,15 @@ int main(int argc, char* argv[]){
     printf("Cache Contents\n");
     printf("Memory Level:  L1i\n");
     temp = icache->block;
-    for (c=0;c<icache->numblocks;c++) {
-      //for (i=0;i<(icache->blocksize);i++) {
-        if (temp->tag[0] != 0) {
-          printf("index: %X, tag: %lX\n", c, temp->tag[0]);
-        }
-      //}
-    temp = temp->next;
+    for (i=0;i<icache->assoc;i++) {
+      for (c=0;c<icache->numblocks;c++) {
+        //for (i=0;i<(icache->blocksize);i++) {
+          if (temp->tag[0] != 0) {
+            printf("index: %X, tag: %lX\n", c, temp->tag[0]);
+          }
+        //}
+      temp = temp->next;
+      }
     }
     printf("Memory Level:  L1d\n");
     temp = dcache->block;
@@ -250,7 +252,7 @@ int main(int argc, char* argv[]){
 
   }
 
-  freecache();
+  //freecache();
   return 0;
 }
 

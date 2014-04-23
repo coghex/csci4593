@@ -45,13 +45,11 @@ struct Cache * initcache(int cachesize, int blocksize, int hittime, int misstime
         for (k=i;k<endcache->numblocks;k++) {
           temp=temp->next;
         }
-        //printf("setting set %d, block %d's next set's block to %d.  numblocks: %d\n", j, i, k, endcache->numblocks);
         block->nextset=temp;
+        block=block->next;
       }
     }
   }
-
-
   return endcache;
 }
 
@@ -63,28 +61,29 @@ int reead(struct Cache * cache, unsigned long tag, unsigned long index, unsigned
   time_t begin, end;
   begin = clock();
   if ((int)(size+(byte%4))%4){
-    ref = (int)((size+(byte%4))/4);
+    ref = (int)((size+(byte%4))/4)+1;
   }
   else {
-    ref=(int)((size+(byte%4))/4)-1;
+    ref=(int)((size+(byte%4))/4);
   }
   if (type=='I'&&level==1) {
     cache->irefs++;
   }
 
   block = cache->block;
-  for (i=0;i<((int)index%cache->numblocks);i++) {
-    block = block->next;
+  if (cache->numblocks>1) {
+    for (i=0;i<((int)index%cache->numblocks);i++) {
+      block = block->next;
+    }
   }
   tempbyte=byte;
-  for (j=0;j<=ref;j++){
+  printf("refs: %d\n",ref);
+  for (j=0;j<ref;j++){
+    temp=block;
     for (i=tempbyte;i<cache->blocksize;i++) {
-      temp=block;
       for (k=0;k<cache->assoc;k++) {
-        if (block->tag[i]==tag) {
+        if (temp->tag[i]==tag) {
           cache->hits++;
-          i=cache->blocksize;
-          k=cache->assoc;
           if (verbose) {
             if (level==1){
               printf("L1 HIT\n");
@@ -93,9 +92,11 @@ int reead(struct Cache * cache, unsigned long tag, unsigned long index, unsigned
               printf("L2 HIT\n");
             }
           }
+          k=cache->assoc;
+          i=cache->blocksize;
         }
         else {
-          if (block->nextset==NULL) {
+          if (temp->nextset==NULL || temp->tag[0]==0) {
             cache->misses++;
             if (level==1){
               if (verbose) {
@@ -107,7 +108,12 @@ int reead(struct Cache * cache, unsigned long tag, unsigned long index, unsigned
 
               reead(l2cache, l2tag, l2index, l2byte, size, 2, addr, type, verbose);
               for (i=0;i<cache->blocksize;i++){
-                temp->tag[i] = tag;
+                if (temp->nextset==NULL) {
+                  block->tag[i] = tag;
+                }
+                else {
+                  temp->tag[i] = tag;
+                }
               }
             }
             else if (level==2) {
@@ -120,13 +126,22 @@ int reead(struct Cache * cache, unsigned long tag, unsigned long index, unsigned
             }
             k=cache->assoc;
           }
-          else {
-            block = block->nextset;
-          }
         }
         if ((int)(size+byte)>cache->blocksize) {
-          tempbyte=0;
-          block=block->next;
+          if (temp->nextset==NULL) {
+            tempbyte=0;
+            printf("too big, moving to next block\n");
+            temp=temp->next;
+            index=index+1;
+          }
+          else {
+            tempbyte=0;
+            temp=temp->nextset;
+            tag=tag+1;
+          }
+        }
+        else {
+          temp=temp->next;
         }
       }
     }
