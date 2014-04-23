@@ -10,7 +10,7 @@ struct Block {
   int dirty;
   struct Block *next;
   struct Block *nextset;
-  unsigned long *tag;
+  unsigned long tag;
 };
 struct Cache {
   int hits;

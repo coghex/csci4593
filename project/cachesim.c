@@ -182,34 +182,34 @@ int main(int argc, char* argv[]){
   printf("  Writes = %-15d    [%d%%]\n", dcache->writes+l2cache->writes, 100*(dcache->writes+l2cache->writes)/totalrefs);
   printf("  Inst.  = %-15d    [%d%%]\n", icache->reads+l2cache->irefs, 100*(icache->reads+l2cache->irefs)/totalrefs);
   printf("  Total  = %-15d\n\n", totalrefs);
-  printf("Total cycles for activities:  [Percentage]\n");
-  printf("  Reads  = %-17d    [%d%%]\n", dcache->rtime+l2cache->rtime, 100*(dcache->rtime+l2cache->rtime)/totaltime);
-  printf("  Writes = %-17d    [%d%%]\n", dcache->wtime+l2cache->wtime, 100*(dcache->wtime+l2cache->wtime)/totaltime);
-  printf("  Inst.  = %-17d    [%d%%]\n", icache->itime+l2cache->itime, 100*(icache->itime+l2cache->itime)/totaltime);
-  printf("  Total  = %-17d\n\n", totaltime);
-  printf("Average cycles per activity:\n");
-  printf("  Read = %f; Write = %f; Inst. = %f\n", ((float)(dcache->rtime+l2cache->rtime))/(dcache->reads+l2cache->drefs),
-        ((float)(dcache->wtime+l2cache->wtime))/(dcache->writes+l2cache->writes), ((float)(icache->itime+l2cache->itime))/(icache->reads+l2cache->irefs));
-  // I dont know what this stuff is, so ill move on for now
+/*  printf("Total cycles for activities:  [Percentage]\n");*/
+  /*printf("  Reads  = %-17d    [%d%%]\n", dcache->rtime+l2cache->rtime, 100*(dcache->rtime+l2cache->rtime)/totaltime);*/
+  /*printf("  Writes = %-17d    [%d%%]\n", dcache->wtime+l2cache->wtime, 100*(dcache->wtime+l2cache->wtime)/totaltime);*/
+  /*printf("  Inst.  = %-17d    [%d%%]\n", icache->itime+l2cache->itime, 100*(icache->itime+l2cache->itime)/totaltime);*/
+  /*printf("  Total  = %-17d\n\n", totaltime);*/
+  /*printf("Average cycles per activity:\n");*/
+  /*printf("  Read = %f; Write = %f; Inst. = %f\n", ((float)(dcache->rtime+l2cache->rtime))/(dcache->reads+l2cache->drefs),*/
+        /*((float)(dcache->wtime+l2cache->wtime))/(dcache->writes+l2cache->writes), ((float)(icache->itime+l2cache->itime))/(icache->reads+l2cache->irefs));*/
+  /*// I dont know what this stuff is, so ill move on for now*/
   printf("\n");
   printf("Memory Level: L1i\n");
   printf("  Hit Count = %d  Miss Count = %d\n", icache->hits, icache->misses);
   printf("  Total Requests = %d\n", icache->hits+icache->misses);
   printf("  Hit Rate = %f%%  Miss Rate = %f%%\n", (100.0*icache->hits)/(icache->hits+icache->misses), (100.0*icache->misses)/(icache->hits+icache->misses));
   printf("  Kickouts = ?; Dirty kickouts = ?; Transfers = ?\n\n");
-  printf("Memory Level: L1d\n");
-  printf("  Hit Count = %d  Miss Count = %d\n", dcache->hits, dcache->misses);
-  printf("  Total Requests = %d\n", dcache->hits+dcache->misses);
-  printf("  Hit Rate = %f%%  Miss Rate = %f%%\n", (100.0*dcache->hits)/(dcache->hits+dcache->misses), (100.0*dcache->misses)/(dcache->hits+dcache->misses));
-  printf("  Kickouts = ?; Dirty kickouts = ?; Transfers = ?\n\n");
-  printf("Memory Level: L2\n");
-  printf("  Hit Count = %d  Miss Count = %d\n", l2cache->hits, l2cache->misses);
-  printf("  Total Requests = %d\n", l2cache->hits+l2cache->misses);
-  printf("  Hit Rate = %f%%  Miss Rate = %f%%\n", (100.0*l2cache->hits)/(l2cache->hits+l2cache->misses), (100.0*l2cache->misses)/(l2cache->hits+l2cache->misses));
-  printf("  Kickouts = ?; Dirty kickouts = ?; Transfers = ?\n\n");
-  printf("L1 cache cost (Icache $%d) + (Dcache $%d) = $%d\n", icache->cost, dcache->cost, icache->cost+dcache->cost);
-  printf("L2 cache cost = $%d; Memory cost $%d\n", l2cache->cost, memcost);
-  printf("Total cost = $%d\n\n", icache->cost+dcache->cost+l2cache->cost+memcost);
+/*  printf("Memory Level: L1d\n");*/
+  /*printf("  Hit Count = %d  Miss Count = %d\n", dcache->hits, dcache->misses);*/
+  /*printf("  Total Requests = %d\n", dcache->hits+dcache->misses);*/
+  /*printf("  Hit Rate = %f%%  Miss Rate = %f%%\n", (100.0*dcache->hits)/(dcache->hits+dcache->misses), (100.0*dcache->misses)/(dcache->hits+dcache->misses));*/
+  /*printf("  Kickouts = ?; Dirty kickouts = ?; Transfers = ?\n\n");*/
+  /*printf("Memory Level: L2\n");*/
+  /*printf("  Hit Count = %d  Miss Count = %d\n", l2cache->hits, l2cache->misses);*/
+  /*printf("  Total Requests = %d\n", l2cache->hits+l2cache->misses);*/
+  /*printf("  Hit Rate = %f%%  Miss Rate = %f%%\n", (100.0*l2cache->hits)/(l2cache->hits+l2cache->misses), (100.0*l2cache->misses)/(l2cache->hits+l2cache->misses));*/
+  /*printf("  Kickouts = ?; Dirty kickouts = ?; Transfers = ?\n\n");*/
+  /*printf("L1 cache cost (Icache $%d) + (Dcache $%d) = $%d\n", icache->cost, dcache->cost, icache->cost+dcache->cost);*/
+  /*printf("L2 cache cost = $%d; Memory cost $%d\n", l2cache->cost, memcost);*/
+  /*printf("Total cost = $%d\n\n", icache->cost+dcache->cost+l2cache->cost+memcost);*/
   for(i=0;i<width;i++) {
     printf("-");
   }
@@ -218,37 +218,7 @@ int main(int argc, char* argv[]){
   if (verbose) {
     printf("Cache Contents\n");
     printf("Memory Level:  L1i\n");
-    temp = icache->block;
-    for (i=0;i<icache->assoc;i++) {
-      for (c=0;c<icache->numblocks;c++) {
-        //for (i=0;i<(icache->blocksize);i++) {
-          if (temp->tag[0] != 0) {
-            printf("index: %X, tag: %lX\n", c, temp->tag[0]);
-          }
-        //}
-      temp = temp->next;
-      }
-    }
-    printf("Memory Level:  L1d\n");
-    temp = dcache->block;
-    for (c=0;c<dcache->numblocks;c++) {
-      //for (i=0;i<(icache->blocksize);i++) {
-        if (temp->tag[0] != 0) {
-          printf("index: %X, tag: %lX\n", c, temp->tag[0]);
-        }
-      //}
-    temp = temp->next;
-    }
-    printf("Memory Level:  L2\n");
-    temp = l2cache->block;
-    for (c=0;c<l2cache->numblocks;c++) {
-      //for (i=0;i<(icache->blocksize);i++) {
-        if (temp->tag[0] != 0) {
-          printf("index: %X, tag: %lX\n", c, temp->tag[0]);
-        }
-      //}
-    temp = temp->next;
-    }
+
 
   }
 
