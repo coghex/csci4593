@@ -22,16 +22,16 @@ struct Cache * initcache(int cachesize, int blocksize, int hittime, int misstime
   endcache->misstime=misstime;
   endcache->assoc=assoc;
   endcache->numblocks=(cachesize/blocksize)/assoc;
-  endcache->indexsize=log(endcache->numblocks)/log(2);
-  endcache->bytesize=log(endcache->blocksize/8)/log(2);
+  endcache->indexsize=log(endcache->numblocks)/log(2.0);
+  endcache->bytesize=log((endcache->blocksize))/log(2.0);
   endcache->tagsize=38-endcache->bytesize-endcache->indexsize;
   endcache->block=(struct Block*)malloc(sizeof(struct Block));
   block=endcache->block;
-  block->tag=malloc((endcache->blocksize/8)*sizeof(unsigned int));
+  block->tag=malloc((endcache->blocksize)*sizeof(unsigned long));
   for (i=1;i<=(endcache->numblocks)*(assoc);i++){
     block->next=(struct Block*)malloc(sizeof(struct Block));
     block=block->next;
-    block->tag=(unsigned int *)malloc((endcache->blocksize/8)*sizeof(unsigned int));
+    block->tag=(unsigned long *)malloc((endcache->blocksize)*sizeof(unsigned long));
   }
 
   block = endcache->block;
@@ -45,7 +45,7 @@ struct Cache * initcache(int cachesize, int blocksize, int hittime, int misstime
         for (k=i;k<endcache->numblocks;k++) {
           temp=temp->next;
         }
-        printf("setting %d, %d\n", j, i);
+        //printf("setting set %d, block %d's next set's block to %d.  numblocks: %d\n", j, i, k, endcache->numblocks);
         block->nextset=temp;
       }
     }
@@ -55,18 +55,21 @@ struct Cache * initcache(int cachesize, int blocksize, int hittime, int misstime
   return endcache;
 }
 
-int reead(struct Cache * cache, unsigned int tag, unsigned int index, unsigned int byte, int size, int level, unsigned long addr, char type) {
+int reead(struct Cache * cache, unsigned long tag, unsigned long index, unsigned long byte, int size, int level, unsigned long addr, char type, int verbose) {
   cache->reads++;
   int i, j, ref, tempbyte, k;
-  unsigned int l2tag, l2index, l2byte;
+  unsigned long l2tag, l2index, l2byte;
   struct Block *block, *temp;
   time_t begin, end;
   begin = clock();
-  if ((size+byte)%(cache->blocksize/8)) {
-    ref = (int)(size+byte)/(cache->blocksize/8)+1;
+  if ((int)(size+(byte%4))%4){
+    ref = (int)((size+(byte%4))/4);
   }
   else {
-    ref = (int)(size+byte)/(cache->blocksize/8);
+    ref=(int)((size+(byte%4))/4)-1;
+  }
+  if (type=='I'&&level==1) {
+    cache->irefs++;
   }
 
   block = cache->block;
@@ -74,34 +77,45 @@ int reead(struct Cache * cache, unsigned int tag, unsigned int index, unsigned i
     block = block->next;
   }
   tempbyte=byte;
-  for (j=0;j<ref;j++){
-    if (type=='I') {
-      cache->irefs++;
-    }
-    for (i=tempbyte;i<cache->blocksize/8;i++) {
+  for (j=0;j<=ref;j++){
+    for (i=tempbyte;i<cache->blocksize;i++) {
       temp=block;
       for (k=0;k<cache->assoc;k++) {
         if (block->tag[i]==tag) {
           cache->hits++;
-          i=cache->blocksize/8;
+          i=cache->blocksize;
           k=cache->assoc;
+          if (verbose) {
+            if (level==1){
+              printf("L1 HIT\n");
+            }
+            else {
+              printf("L2 HIT\n");
+            }
+          }
         }
         else {
           if (block->nextset==NULL) {
             cache->misses++;
             if (level==1){
+              if (verbose) {
+                printf("L1 MISS\n");
+              }
               l2tag = (((~0)<<(l2cache->indexsize+l2cache->bytesize))&addr)>>(l2cache->indexsize+l2cache->bytesize);
               l2index = (((~((~0)<<l2cache->indexsize))<<l2cache->bytesize)&addr)>>(l2cache->bytesize);
               l2byte = (~((~0)<<l2cache->bytesize))&addr;
 
-              reead(l2cache, l2tag, l2index, l2byte, size, 2, addr, type);
-              for (i=tempbyte;i<cache->blocksize/8;i++){
-                block->tag[i] = tag;
+              reead(l2cache, l2tag, l2index, l2byte, size, 2, addr, type, verbose);
+              for (i=0;i<cache->blocksize;i++){
+                temp->tag[i] = tag;
               }
             }
             else if (level==2) {
-              for (i=tempbyte;i<cache->blocksize/8;i++){
-                block->tag[i] = tag;
+              if (verbose) {
+                printf("L2 MISS\n");
+              }
+              for (i=0;i<cache->blocksize;i++){
+                temp->tag[i] = tag;
               }
             }
             k=cache->assoc;
@@ -110,10 +124,12 @@ int reead(struct Cache * cache, unsigned int tag, unsigned int index, unsigned i
             block = block->nextset;
           }
         }
+        if ((int)(size+byte)>cache->blocksize) {
+          tempbyte=0;
+          block=block->next;
+        }
       }
-      block=temp->next;
     }
-    tempbyte=0;
   }
   end = clock();
   if (type=='I'){

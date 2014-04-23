@@ -23,18 +23,18 @@ int main(int argc, char* argv[]){
   int memreadyt=50;
   int memchunkt=20;
   int memchunk=16;
-  int verbose = 0;
   int memcost;
-  unsigned int tag, index, byte;
+  unsigned long tag, index, byte;
   FILE *f;
   struct winsize w;
   int width;
   static char usage[] = "usage: cat <traces> | ./cachesim [-hc] <config_file>\n";
   time_t begin, end;
-  int totalrefs, totalreftypes, totaltime;
+  int totalrefs, totaltime;
   int ind;
   char ins[32];
   struct Block * temp;
+  int verbose=0;
 
   // code to retrive command flags
   while ((c=getopt(argc, argv, "hcv"))!=-1) {
@@ -59,9 +59,9 @@ int main(int argc, char* argv[]){
   }
 
   // This will initialize the caches with their default values
-  icache = initcache(8192, 32*8, 1, 1, 1);
-  dcache = initcache(8192, 32*8, 1, 1, 1);
-  l2cache = initcache(32768, 64*8, 5, 8, 1);
+  icache = initcache(8192, 32, 1, 1, 256);
+  dcache = initcache(8192, 32, 1, 1, 2);
+  l2cache = initcache(32768, 64, 5, 8, 1);
 
   // This will handle all the various inputs
   if (argc > argvar) {
@@ -162,9 +162,9 @@ int main(int argc, char* argv[]){
       index = (((~((~0)<<icache->indexsize))<<icache->bytesize)&addr)>>(icache->bytesize);
       byte = (~((~0)<<icache->bytesize))&addr;
       if (verbose) {
-        printf("tag: %X index: %X byte: %X\n", tag, index, byte);
+        printf("tag: %lX index: %lX byte: %lX\n", tag, index, byte);
       }
-      reead(icache, tag, index, byte, size, 1, addr, op);
+      reead(icache, tag, index, byte, size, 1, addr, op, verbose);
       if (verbose) {
         printf("  L1misses: %d, L1hits: %d\n", icache->misses, icache->hits);
         printf("  L2misses: %d, L2hits: %d\n", l2cache->misses, l2cache->hits);
@@ -174,15 +174,14 @@ int main(int argc, char* argv[]){
   end=clock();
 
   totaltime=icache->itime+icache->rtime+icache->wtime+dcache->itime+dcache->rtime+dcache->wtime+l2cache->itime+l2cache->rtime+l2cache->wtime;
-  totalrefs=(icache->irefs+dcache->drefs+l2cache->irefs+l2cache->drefs);
+  totalrefs=(icache->irefs+dcache->drefs);
   printf("Execute time: %d; Total Refs: %d\n", icache->itime, totalrefs);
   printf("Instruction Refs: %d; Data Refs: %d\n\n", icache->irefs+l2cache->irefs, dcache->drefs+l2cache->drefs);
   printf("Number of reference types:  [Percentage]\n");
-  totalreftypes=icache->reads+icache->writes+dcache->reads+dcache->writes+l2cache->reads+l2cache->writes;
-  printf("  Reads  = %-15d    [%d%%]\n", dcache->reads+l2cache->drefs, 100*(dcache->reads+l2cache->drefs)/totalreftypes);
-  printf("  Writes = %-15d    [%d%%]\n", dcache->writes+l2cache->writes, 100*(dcache->writes+l2cache->writes)/totalreftypes);
-  printf("  Inst.  = %-15d    [%d%%]\n", icache->reads+l2cache->irefs, 100*(icache->reads+l2cache->irefs)/totalreftypes);
-  printf("  Total  = %-15d\n\n", totalreftypes);
+  printf("  Reads  = %-15d    [%d%%]\n", dcache->reads+l2cache->drefs, 100*(dcache->reads+l2cache->drefs)/totalrefs);
+  printf("  Writes = %-15d    [%d%%]\n", dcache->writes+l2cache->writes, 100*(dcache->writes+l2cache->writes)/totalrefs);
+  printf("  Inst.  = %-15d    [%d%%]\n", icache->reads+l2cache->irefs, 100*(icache->reads+l2cache->irefs)/totalrefs);
+  printf("  Total  = %-15d\n\n", totalrefs);
   printf("Total cycles for activities:  [Percentage]\n");
   printf("  Reads  = %-17d    [%d%%]\n", dcache->rtime+l2cache->rtime, 100*(dcache->rtime+l2cache->rtime)/totaltime);
   printf("  Writes = %-17d    [%d%%]\n", dcache->wtime+l2cache->wtime, 100*(dcache->wtime+l2cache->wtime)/totaltime);
@@ -221,13 +220,34 @@ int main(int argc, char* argv[]){
     printf("Memory Level:  L1i\n");
     temp = icache->block;
     for (c=0;c<icache->numblocks;c++) {
-      for (i=0;i<(icache->blocksize/8);i++) {
-        if (temp->tag[i] != 0) {
-          printf("index: %X, tag: %X\n", c, temp->tag[i]);
+      //for (i=0;i<(icache->blocksize);i++) {
+        if (temp->tag[0] != 0) {
+          printf("index: %X, tag: %lX\n", c, temp->tag[0]);
         }
-      }
+      //}
     temp = temp->next;
     }
+    printf("Memory Level:  L1d\n");
+    temp = dcache->block;
+    for (c=0;c<dcache->numblocks;c++) {
+      //for (i=0;i<(icache->blocksize);i++) {
+        if (temp->tag[0] != 0) {
+          printf("index: %X, tag: %lX\n", c, temp->tag[0]);
+        }
+      //}
+    temp = temp->next;
+    }
+    printf("Memory Level:  L2\n");
+    temp = l2cache->block;
+    for (c=0;c<l2cache->numblocks;c++) {
+      //for (i=0;i<(icache->blocksize);i++) {
+        if (temp->tag[0] != 0) {
+          printf("index: %X, tag: %lX\n", c, temp->tag[0]);
+        }
+      //}
+    temp = temp->next;
+    }
+
   }
 
   freecache();
