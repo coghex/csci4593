@@ -33,7 +33,6 @@ int main(int argc, char* argv[]){
   int totalrefs, totaltime;
   int ind;
   char ins[32];
-  struct Block * temp;
   int verbose=0;
 
   // code to retrive command flags
@@ -59,9 +58,9 @@ int main(int argc, char* argv[]){
   }
 
   // This will initialize the caches with their default values
-  icache = initcache(8192, 32, 1, 1, 4);
-  dcache = initcache(8192, 32, 1, 1, 4);
-  l2cache = initcache(32768, 64, 5, 8, 4);
+  icache = initcache(8192, 32, 1, 1, 256);
+  dcache = initcache(8192, 32, 1, 1, 1);
+  l2cache = initcache(32768, 64, 5, 8, 1);
 
   // This will handle all the various inputs
   if (argc > argvar) {
