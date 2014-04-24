@@ -58,7 +58,7 @@ int main(int argc, char* argv[]){
   }
 
   // This will initialize the caches with their default values
-  icache = initcache(8192, 32, 1, 1, 256);
+  icache = initcache(8192, 32, 1, 1, 4);
   dcache = initcache(8192, 32, 1, 1, 1);
   l2cache = initcache(32768, 64, 5, 8, 1);
 
