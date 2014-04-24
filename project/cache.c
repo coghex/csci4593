@@ -79,23 +79,37 @@ int reead(struct Cache * cache, unsigned long tag, unsigned long index, unsigned
   temp=block;
   for (i=0;i<ref;i++) {
     if (((int)((4*i*(size/4))+byte)>cache->blocksize)) {
-      printf("Its too long here... Im moving to the next block\n");
-      temp=temp->next;
+      if (temp->nextset!=NULL) {
+        printf("too big, incrementing tag\n");
+        tag++;
+      }
+      else {
+        temp=temp->next;
+      }
     }
 
     for (j=0;j<cache->assoc;j++) {
       if (temp->tag==tag) {
         cache->hits++;
         printf("L1 HIT\n");
+        break;
       }
       else {
         if (temp->nextset!=NULL) {
           temp=temp->nextset;
+          if (temp->valid==0) {
+            cache->misses++;
+            printf("L1 MISS\n");
+            temp->tag=tag;
+            temp->valid=1;
+            break;
+          }
         }
         else {
           cache->misses++;
           printf("L1 MISS\n");
           temp->tag=tag;
+          temp->valid=1;
         }
       }
     }
