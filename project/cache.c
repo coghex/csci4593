@@ -37,6 +37,7 @@ struct Cache * initcache(int cachesize, int blocksize, int hittime, int misstime
   block = endcache->block;
   for (j=0; j<assoc; j++) {
     for (i=0; i<endcache->numblocks;i++) {
+      endcache->LRUqueue[j*endcache->numblocks+i]=block;
       if (j==assoc-1) {
         block->nextset=NULL;
       }
@@ -55,8 +56,8 @@ struct Cache * initcache(int cachesize, int blocksize, int hittime, int misstime
 
 int reead(struct Cache * cache, unsigned long tag, unsigned long index, unsigned long byte, int size, int level, unsigned long addr, char type, int verbose) {
   cache->reads++;
-  int i, j, ref;
-  struct Block *block, *temp;
+  int i, j, k, ref;
+  struct Block *block, *temp, *node;
   verbose = (int) addr;
 
   if ((int)(size+(byte%4))%4){
@@ -79,12 +80,12 @@ int reead(struct Cache * cache, unsigned long tag, unsigned long index, unsigned
   temp=block;
   for (i=0;i<ref;i++) {
     if (((int)((4*i*(size/4))+byte)>cache->blocksize)) {
-      if (temp->nextset!=NULL) {
-        printf("too big, incrementing tag\n");
-        tag++;
+      if (temp->nextset==NULL) {
+        temp=temp->next;
+        index++;
       }
       else {
-        temp=temp->next;
+        tag++;
       }
     }
 
@@ -108,6 +109,7 @@ int reead(struct Cache * cache, unsigned long tag, unsigned long index, unsigned
         else {
           cache->misses++;
           printf("L1 MISS\n");
+
           temp->tag=tag;
           temp->valid=1;
         }

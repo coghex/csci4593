@@ -12,6 +12,7 @@ struct Block {
   struct Block *nextset;
   unsigned long tag;
 };
+
 struct Cache {
   int hits;
   int misses;

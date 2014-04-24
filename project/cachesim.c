@@ -59,9 +59,9 @@ int main(int argc, char* argv[]){
   }
 
   // This will initialize the caches with their default values
-  icache = initcache(8192, 32, 1, 1, 1);
-  dcache = initcache(8192, 32, 1, 1, 1);
-  l2cache = initcache(32768, 64, 5, 8, 1);
+  icache = initcache(8192, 32, 1, 1, 4);
+  dcache = initcache(8192, 32, 1, 1, 4);
+  l2cache = initcache(32768, 64, 5, 8, 4);
 
   // This will handle all the various inputs
   if (argc > argvar) {
@@ -166,10 +166,24 @@ int main(int argc, char* argv[]){
       }
       reead(icache, tag, index, byte, size, 1, addr, op, verbose);
       if (verbose) {
-        printf("  L1misses: %d, L1hits: %d\n", icache->misses, icache->hits);
+        printf("  L1imisses: %d, L1ihits: %d\n", icache->misses, icache->hits);
         printf("  L2misses: %d, L2hits: %d\n", l2cache->misses, l2cache->hits);
       }
     }
+    /*if (op == 'R') {*/
+      /*tag = (((~0)<<(dcache->indexsize+dcache->bytesize))&addr)>>(dcache->indexsize+dcache->bytesize);*/
+      /*index = (((~((~0)<<dcache->indexsize))<<dcache->bytesize)&addr)>>(dcache->bytesize);*/
+      /*byte = (~((~0)<<dcache->bytesize))&addr;*/
+      /*if (verbose) {*/
+        /*printf("tag: %lX index: %lX byte: %lX\n", tag, index, byte);*/
+      /*}*/
+      /*reead(dcache, tag, index, byte, size, 1, addr, op, verbose);*/
+      /*if (verbose) {*/
+        /*printf("  L1dmisses: %d, L1dhits: %d\n", dcache->misses, dcache->hits);*/
+        /*printf("  L2misses: %d, L2hits: %d\n", l2cache->misses, l2cache->hits);*/
+      /*}*/
+
+    /*}*/
   }
   end=clock();
 
@@ -197,11 +211,11 @@ int main(int argc, char* argv[]){
   printf("  Total Requests = %d\n", icache->hits+icache->misses);
   printf("  Hit Rate = %f%%  Miss Rate = %f%%\n", (100.0*icache->hits)/(icache->hits+icache->misses), (100.0*icache->misses)/(icache->hits+icache->misses));
   printf("  Kickouts = ?; Dirty kickouts = ?; Transfers = ?\n\n");
-/*  printf("Memory Level: L1d\n");*/
-  /*printf("  Hit Count = %d  Miss Count = %d\n", dcache->hits, dcache->misses);*/
-  /*printf("  Total Requests = %d\n", dcache->hits+dcache->misses);*/
-  /*printf("  Hit Rate = %f%%  Miss Rate = %f%%\n", (100.0*dcache->hits)/(dcache->hits+dcache->misses), (100.0*dcache->misses)/(dcache->hits+dcache->misses));*/
-  /*printf("  Kickouts = ?; Dirty kickouts = ?; Transfers = ?\n\n");*/
+  printf("Memory Level: L1d\n");
+  printf("  Hit Count = %d  Miss Count = %d\n", dcache->hits, dcache->misses);
+  printf("  Total Requests = %d\n", dcache->hits+dcache->misses);
+  printf("  Hit Rate = %f%%  Miss Rate = %f%%\n", (100.0*dcache->hits)/(dcache->hits+dcache->misses), (100.0*dcache->misses)/(dcache->hits+dcache->misses));
+  printf("  Kickouts = ?; Dirty kickouts = ?; Transfers = ?\n\n");
   /*printf("Memory Level: L2\n");*/
   /*printf("  Hit Count = %d  Miss Count = %d\n", l2cache->hits, l2cache->misses);*/
   /*printf("  Total Requests = %d\n", l2cache->hits+l2cache->misses);*/
