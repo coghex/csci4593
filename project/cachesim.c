@@ -13,7 +13,7 @@
 int main(int argc, char* argv[]){
   char op;
   unsigned long addr;
-  int size;
+  int size, length;
   int i;
   int c;
   int argvar=2;
@@ -163,26 +163,36 @@ int main(int argc, char* argv[]){
       if (verbose) {
         printf("tag: %lX index: %lX byte: %lX\n", tag, index, byte);
       }
-      reead(icache, tag, index, byte, size, 1, addr, op, verbose);
-      if (verbose) {
-        printf("  L1imisses: %d, L1ihits: %d\n", icache->misses, icache->hits);
-        printf("  L2misses: %d, L2hits: %d\n", l2cache->misses, l2cache->hits);
-      }
-    }
-    /*if (op == 'R') {*/
-      /*tag = (((~0)<<(dcache->indexsize+dcache->bytesize))&addr)>>(dcache->indexsize+dcache->bytesize);*/
-      /*index = (((~((~0)<<dcache->indexsize))<<dcache->bytesize)&addr)>>(dcache->bytesize);*/
-      /*byte = (~((~0)<<dcache->bytesize))&addr;*/
-      /*if (verbose) {*/
-        /*printf("tag: %lX index: %lX byte: %lX\n", tag, index, byte);*/
-      /*}*/
-      /*reead(dcache, tag, index, byte, size, 1, addr, op, verbose);*/
-      /*if (verbose) {*/
-        /*printf("  L1dmisses: %d, L1dhits: %d\n", dcache->misses, dcache->hits);*/
-        /*printf("  L2misses: %d, L2hits: %d\n", l2cache->misses, l2cache->hits);*/
-      /*}*/
+      addr = addr&((~0)<<(int)(log(icache->bytesize)/log(2)));
 
-    /*}*/
+      if ((size+(byte%4))%4) {
+        length = ((size+(byte%4))/4)+1;
+      }
+      else {
+        length = ((size+(byte%4))/4);
+      }
+      icache->irefs+=length;
+      if ((int)(byte+size)>icache->blocksize) {
+        if (verbose) {
+          printf("address %lX length %d\n", addr, (int)((icache->blocksize)-(byte))/4+1);
+        }
+        reead(icache, addr, ((icache->blocksize)-(byte))/4+1, verbose);
+        addr = addr+(1<<(icache->bytesize));
+        length=length-((icache->blocksize)-(byte))/4-1;
+        if (verbose) {
+          printf("address %lX length %d\n", addr, length);
+        }
+
+        reead(icache, addr, length, verbose);
+      }
+      else {
+        if (verbose) {
+          printf("address %lX length %d\n", addr, length);
+        }
+        reead(icache, addr, length, verbose);
+      }
+      printf("\n");
+    }
   }
   end=clock();
 
