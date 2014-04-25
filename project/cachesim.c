@@ -59,8 +59,8 @@ int main(int argc, char* argv[]){
 
   // This will initialize the caches with their default values
   icache = initcache(8192, 32, 1, 1, 4);
-  dcache = initcache(8192, 32, 1, 1, 1);
-  l2cache = initcache(32768, 64, 5, 8, 1);
+  dcache = initcache(8192, 32, 1, 1, 4);
+  l2cache = initcache(32768, 64, 5, 8, 4);
 
   // This will handle all the various inputs
   if (argc > argvar) {
@@ -172,39 +172,118 @@ int main(int argc, char* argv[]){
         length = ((size+(byte%4))/4);
       }
       icache->irefs+=length;
+      icache->reads++;
       if ((int)(byte+size)>icache->blocksize) {
         if (verbose) {
           printf("address %lX length %d\n", addr, (int)((icache->blocksize)-(byte))/4+1);
         }
-        reead(icache, addr, ((icache->blocksize)-(byte))/4+1, verbose);
+        reead(icache, addr, ((icache->blocksize)-(byte))/4+1, verbose, 1, op);
         addr = addr+(1<<(icache->bytesize));
         length=length-((icache->blocksize)-(byte))/4-1;
         if (verbose) {
           printf("address %lX length %d\n", addr, length);
         }
 
-        reead(icache, addr, length, verbose);
+        reead(icache, addr, length, verbose, 1, op);
       }
       else {
         if (verbose) {
           printf("address %lX length %d\n", addr, length);
         }
-        reead(icache, addr, length, verbose);
+        reead(icache, addr, length, verbose, 1, op);
       }
       printf("\n");
     }
+    if (op == 'R') {
+      tag = (((~0)<<(dcache->indexsize+dcache->bytesize))&addr)>>(dcache->indexsize+dcache->bytesize);
+      index = (((~((~0)<<dcache->indexsize))<<dcache->bytesize)&addr)>>(dcache->bytesize);
+      byte = (~((~0)<<dcache->bytesize))&addr;
+      if (verbose) {
+        printf("tag: %lX index: %lX byte: %lX\n", tag, index, byte);
+      }
+      addr = addr&((~0)<<(int)(log(dcache->bytesize)/log(2)));
+
+      if ((size+(byte%4))%4) {
+        length = ((size+(byte%4))/4)+1;
+      }
+      else {
+        length = ((size+(byte%4))/4);
+      }
+      dcache->drefs+=length;
+      dcache->reads++;
+      if ((int)(byte+size)>dcache->blocksize) {
+        if (verbose) {
+          printf("address %lX length %d\n", addr, (int)((dcache->blocksize)-(byte))/4+1);
+        }
+        reead(dcache, addr, ((dcache->blocksize)-(byte))/4+1, verbose, 1, op);
+        addr = addr+(1<<(dcache->bytesize));
+        length=length-((dcache->blocksize)-(byte))/4-1;
+        if (verbose) {
+          printf("address %lX length %d\n", addr, length);
+        }
+
+        reead(dcache, addr, length, verbose, 1, op);
+      }
+      else {
+        if (verbose) {
+          printf("address %lX length %d\n", addr, length);
+        }
+        reead(dcache, addr, length, verbose, 1, op);
+      }
+      printf("\n");
+    }
+    if (op == 'W') {
+      tag = (((~0)<<(dcache->indexsize+dcache->bytesize))&addr)>>(dcache->indexsize+dcache->bytesize);
+      index = (((~((~0)<<dcache->indexsize))<<dcache->bytesize)&addr)>>(dcache->bytesize);
+      byte = (~((~0)<<dcache->bytesize))&addr;
+      if (verbose) {
+        printf("tag: %lX index: %lX byte: %lX\n", tag, index, byte);
+      }
+      addr = addr&((~0)<<(int)(log(dcache->bytesize)/log(2)));
+
+      if ((size+(byte%4))%4) {
+        length = ((size+(byte%4))/4)+1;
+      }
+      else {
+        length = ((size+(byte%4))/4);
+      }
+      dcache->drefs+=length;
+      dcache->writes++;
+      if ((int)(byte+size)>dcache->blocksize) {
+        if (verbose) {
+          printf("address %lX length %d\n", addr, (int)((dcache->blocksize)-(byte))/4+1);
+        }
+        reead(dcache, addr, ((dcache->blocksize)-(byte))/4+1, verbose, 1, op);
+        addr = addr+(1<<(dcache->bytesize));
+        length=length-((dcache->blocksize)-(byte))/4-1;
+        if (verbose) {
+          printf("address %lX length %d\n", addr, length);
+        }
+
+        reead(dcache, addr, length, verbose, 1, op);
+      }
+      else {
+        if (verbose) {
+          printf("address %lX length %d\n", addr, length);
+        }
+        reead(dcache, addr, length, verbose, 1, op);
+      }
+      printf("\n");
+    }
+
+
   }
   end=clock();
 
   totaltime=icache->itime+icache->rtime+icache->wtime+dcache->itime+dcache->rtime+dcache->wtime+l2cache->itime+l2cache->rtime+l2cache->wtime;
-  totalrefs=(icache->irefs+dcache->drefs);
+  totalrefs=(icache->reads+dcache->reads+dcache->writes);
   printf("Execute time: %d; Total Refs: %d\n", icache->itime, totalrefs);
   printf("Instruction Refs: %d; Data Refs: %d\n\n", icache->irefs+l2cache->irefs, dcache->drefs+l2cache->drefs);
   printf("Number of reference types:  [Percentage]\n");
-  printf("  Reads  = %-15d    [%d%%]\n", dcache->reads+l2cache->drefs, 100*(dcache->reads+l2cache->drefs)/totalrefs);
-  printf("  Writes = %-15d    [%d%%]\n", dcache->writes+l2cache->writes, 100*(dcache->writes+l2cache->writes)/totalrefs);
-  printf("  Inst.  = %-15d    [%d%%]\n", icache->reads+l2cache->irefs, 100*(icache->reads+l2cache->irefs)/totalrefs);
-  printf("  Total  = %-15d\n\n", totalrefs);
+  printf("  Reads  = %-15d    [%d%%]\n", dcache->reads, 100*(dcache->reads)/totalrefs);
+  printf("  Writes = %-15d    [%d%%]\n", dcache->writes, 100*(dcache->writes)/totalrefs);
+  printf("  Inst.  = %-15d    [%d%%]\n", icache->reads, 100*(icache->reads)/totalrefs);
+  printf("  Total  = %-d\n\n", totalrefs);
 /*  printf("Total cycles for activities:  [Percentage]\n");*/
   /*printf("  Reads  = %-17d    [%d%%]\n", dcache->rtime+l2cache->rtime, 100*(dcache->rtime+l2cache->rtime)/totaltime);*/
   /*printf("  Writes = %-17d    [%d%%]\n", dcache->wtime+l2cache->wtime, 100*(dcache->wtime+l2cache->wtime)/totaltime);*/
@@ -225,14 +304,14 @@ int main(int argc, char* argv[]){
   printf("  Total Requests = %d\n", dcache->hits+dcache->misses);
   printf("  Hit Rate = %f%%  Miss Rate = %f%%\n", (100.0*dcache->hits)/(dcache->hits+dcache->misses), (100.0*dcache->misses)/(dcache->hits+dcache->misses));
   printf("  Kickouts = ?; Dirty kickouts = ?; Transfers = ?\n\n");
-  /*printf("Memory Level: L2\n");*/
-  /*printf("  Hit Count = %d  Miss Count = %d\n", l2cache->hits, l2cache->misses);*/
-  /*printf("  Total Requests = %d\n", l2cache->hits+l2cache->misses);*/
-  /*printf("  Hit Rate = %f%%  Miss Rate = %f%%\n", (100.0*l2cache->hits)/(l2cache->hits+l2cache->misses), (100.0*l2cache->misses)/(l2cache->hits+l2cache->misses));*/
-  /*printf("  Kickouts = ?; Dirty kickouts = ?; Transfers = ?\n\n");*/
-  /*printf("L1 cache cost (Icache $%d) + (Dcache $%d) = $%d\n", icache->cost, dcache->cost, icache->cost+dcache->cost);*/
-  /*printf("L2 cache cost = $%d; Memory cost $%d\n", l2cache->cost, memcost);*/
-  /*printf("Total cost = $%d\n\n", icache->cost+dcache->cost+l2cache->cost+memcost);*/
+  printf("Memory Level: L2\n");
+  printf("  Hit Count = %d  Miss Count = %d\n", l2cache->hits, l2cache->misses);
+  printf("  Total Requests = %d\n", l2cache->hits+l2cache->misses);
+  printf("  Hit Rate = %f%%  Miss Rate = %f%%\n", (100.0*l2cache->hits)/(l2cache->hits+l2cache->misses), (100.0*l2cache->misses)/(l2cache->hits+l2cache->misses));
+  printf("  Kickouts = ?; Dirty kickouts = ?; Transfers = ?\n\n");
+  printf("L1 cache cost (Icache $%d) + (Dcache $%d) = $%d\n", icache->cost, dcache->cost, icache->cost+dcache->cost);
+  printf("L2 cache cost = $%d; Memory cost $%d\n", l2cache->cost, memcost);
+  printf("Total cost = $%d\n\n", icache->cost+dcache->cost+l2cache->cost+memcost);
   for(i=0;i<width;i++) {
     printf("-");
   }

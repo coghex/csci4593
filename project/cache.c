@@ -143,7 +143,7 @@ int moveblock(struct Block *src, struct Block *dest, struct Cache *cache, int in
   return 1;
 }
 
-int reead(struct Cache * cache, unsigned long addr, int size, int verbose) {
+int reead(struct Cache * cache, unsigned long addr, int size, int verbose, int level, char type) {
   int i,j;
   unsigned long tag;
   int index;
@@ -170,7 +170,12 @@ int reead(struct Cache * cache, unsigned long addr, int size, int verbose) {
       if (temp->tag==tag && temp->valid==1) {
         cache->hits++;
         if (verbose) {
-          printf("HIT\n");
+          if (level==1) {
+            printf("L1 HIT\n");
+          }
+          else {
+            printf("L2 HIT\n");
+          }
         }
         break;
       }
@@ -181,11 +186,37 @@ int reead(struct Cache * cache, unsigned long addr, int size, int verbose) {
         else {
           cache->misses++;
           if (verbose) {
-            printf("MISS\n");
+            if (level==1) {
+              printf("L1 MISS\n");
+            }
+            else {
+              printf("L2 MISS\n");
+            }
           }
           //Write to the right block
           temp->tag=tag;
           temp->valid=1;
+
+          //Going to L2
+          if (level==1) {
+            tag = (((~0)<<(icache->indexsize+icache->bytesize))&addr)>>(icache->indexsize+icache->bytesize);
+            index = (((~((~0)<<icache->indexsize))<<icache->bytesize)&addr)>>(icache->bytesize);
+            addr = addr&((~0)<<(int)(log(icache->bytesize)/log(2)));
+            if (type=='I') {
+              l2cache->irefs++;
+            }
+            else {
+              l2cache->drefs++;
+              if (type=='W') {
+                l2cache->writes++;
+              }
+              else {
+                l2cache->reads++;
+              }
+            }
+            reead(l2cache, addr, 1, verbose, 2, type);
+          }
+
           //move block to beginning of LRU queue
           if (cache->assoc>1){
             moveblock(temp, block, cache, index);

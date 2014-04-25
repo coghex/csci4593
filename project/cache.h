@@ -52,7 +52,7 @@ struct Cache *l2cache;
 struct Cache * initcache(int cachesize, int blocksize, int hittime, int misstime, int assoc);
 int printcache(struct Cache *cache);
 int moveblock(struct Block *src, struct Block *dest, struct Cache *cache, int index);
-int reead(struct Cache *, unsigned long addr, int size, int verbose);
+int reead(struct Cache *, unsigned long addr, int size, int verbose, int level, char type);
 void freecache();
 
 #endif
