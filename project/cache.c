@@ -234,13 +234,13 @@ int reead(struct Cache * cache, unsigned long long addr, int size, int verbose, 
     for (j=0;j<cache->assoc;j++) {
       if (temp->tag==tag && temp->valid==1) {
         cache->hits++;
-        if (type=='I') {
+        if (type=='I' && level==1) {
           cache->itime+=cache->hittime;
         }
-        else if (type=='R') {
+        else if (type=='R' && level==1) {
           cache->rtime+=cache->hittime;
         }
-        else {
+        else if (level==1){
           cache->wtime+=cache->hittime;
         }
         if (verbose) {
@@ -252,14 +252,38 @@ int reead(struct Cache * cache, unsigned long long addr, int size, int verbose, 
           }
         }
         if (level==1 && type=='I' && verbose) {
-          printf("Add L1i hit time (+ %d)\n", cache->misstime);
+          printf("Add L1i hit time (+ %d)\n", cache->hittime);
         }
         else if (level==1 && verbose) {
-          printf("Add L1d hit time (+ %d)\n", cache->misstime);
+          printf("Add L1d hit time (+ %d)\n", cache->hittime);
         }
         else {
           if (verbose) {
-            printf("Add L2 hit time (+ %d)\n", cache->misstime);
+            printf("Add L2 hit time (+ %d)\n", cache->hittime);
+            if (type=='I') {
+              printf("Bringing line into L1i.\n");
+              cache->itime+=cache->hittime;
+              printf("Add L2 to L1 transfer time (+ %d)\n", icache->sendaddr*(32/l2cache->buswidth));
+              cache->itime+=icache->sendaddr*(32/l2cache->buswidth);
+              printf("Add L1i hit replay time (+ %d)\n", icache->hittime);
+              cache->itime+=icache->hittime;
+            }
+            else if (type=='R') {
+              printf("Bringing line into L1d.\n");
+              cache->rtime+=cache->hittime;
+              printf("Add L2 to L1 transfer time (+ %d)\n", dcache->sendaddr*(32/l2cache->buswidth));
+              cache->rtime+=dcache->sendaddr*(32/l2cache->buswidth);
+              printf("Add L1d hit replay time (+ %d)\n", dcache->hittime);
+              cache->rtime+=dcache->hittime;
+            }
+            else {
+              printf("Bringing line into L1d.\n");
+              cache->wtime+=cache->hittime;
+              printf("Add L2 to L1 transfer time (+ %d)\n", dcache->sendaddr*(32/l2cache->buswidth));
+              cache->wtime+=dcache->sendaddr*(32/l2cache->buswidth);
+              printf("Add L1d hit replay time (+ %d)\n", dcache->hittime);
+              cache->wtime+=dcache->hittime;
+            }
           }
         }
 
@@ -333,7 +357,7 @@ int reead(struct Cache * cache, unsigned long long addr, int size, int verbose, 
 
           }
           else if (level==2 && verbose) {
-            printf("Bringing line into L1d.");
+            printf("Bringing line into L1d.\n");
             printf("Add L2 to L1 transfer time (+ %d)\n", dcache->sendaddr*(32/l2cache->buswidth));
             printf("Add L1d hit replay time (+ %d)\n", dcache->hittime);
 
