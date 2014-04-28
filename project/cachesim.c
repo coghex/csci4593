@@ -29,7 +29,7 @@ int main(int argc, char* argv[]){
   struct winsize w;
   int width;
   static char usage[] = "usage: cat <traces> | ./cachesim [-hc] <config_file>\n";
-  time_t begin, end;
+  int begin, end;
   int totalrefs, totaltime;
   int ind;
   char ins[32];
@@ -58,9 +58,9 @@ int main(int argc, char* argv[]){
   }
 
   // This will initialize the caches with their default values
-  icache = initcache(8192, 32, 1, 1, 1, 0, 4);
-  dcache = initcache(8192, 32, 1, 1, 1, 1, 4);
-  l2cache = initcache(32768, 64, 5, 8, 1, 1, 16);
+  icache = initcache(8192, 32, 1, 1, 4, 0, 4, 6, 1, 1);
+  dcache = initcache(8192, 32, 1, 1, 4, 1, 4, 6, 1, 1);
+  l2cache = initcache(32768, 64, 5, 8, 4, 1, 16, 10, 50, 20);
 
   // This will handle all the various inputs
   if (argc > argvar) {
@@ -149,9 +149,9 @@ int main(int argc, char* argv[]){
     printf("Icache block index = %d : number of blocks = 2^%d : tag size = %d\n\n", icache->bytesize, icache->indexsize, icache->tagsize);
   }
 
+  begin=0;
   memcost = (int)((200/(memreadyt/50.0)-150) + (100*(memchunk/16.0)-75));
 
-  begin=clock();
   while (scanf("%c %llX %d\n",&op,&addr,&size)==3) {
     if (verbose) {
       printf("%c,%llX,%d\n",op,addr,size);
@@ -193,7 +193,9 @@ int main(int argc, char* argv[]){
         reead(icache, addr, length, verbose, 1, op, size);
       }
       if (verbose){
-        printf("\n");
+        end=icache->itime+dcache->rtime+dcache->wtime+l2cache->rtime+l2cache->wtime+l2cache->itime;
+
+        printf("Simulated time = %d\n\n", end-begin);
       }
     }
     if (op == 'R') {
@@ -233,10 +235,13 @@ int main(int argc, char* argv[]){
         reead(dcache, addr, length, verbose, 1, op, size);
       }
       if (verbose){
-        printf("\n");
+        end=icache->itime+dcache->rtime+dcache->wtime+l2cache->rtime+l2cache->wtime+l2cache->itime;
+
+        printf("Simulated time = %d\n\n", end-begin);
       }
     }
     if (op == 'W') {
+
       tag = (((~0)<<(dcache->indexsize+dcache->bytesize))&addr)>>(dcache->indexsize+dcache->bytesize);
       index = (((~((~0)<<dcache->indexsize))<<dcache->bytesize)&addr)>>(dcache->bytesize);
       byte = (~((~0)<<dcache->bytesize))&addr;
@@ -273,13 +278,14 @@ int main(int argc, char* argv[]){
         reead(dcache, addr, length, verbose, 1, op, size);
       }
       if (verbose){
-        printf("\n");
+        end=icache->itime+dcache->rtime+dcache->wtime+l2cache->rtime+l2cache->wtime+l2cache->itime;
+
+        printf("Simulated time = %d\n\n", end-begin);
       }
     }
 
 
   }
-  end=clock();
 
   totaltime=dcache->rtime+l2cache->rtime+dcache->wtime+l2cache->wtime+icache->itime+l2cache->itime;
   totalrefs=(icache->reads+dcache->reads+dcache->writes);
