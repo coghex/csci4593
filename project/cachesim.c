@@ -36,7 +36,7 @@ int main(int argc, char* argv[]){
   int argvar=2;
   int isc=0;
   int res[10];
-  unsigned long long tag[10], index[10], byte;
+  unsigned long long tag[10], index[10], byte, l2tag[10], l2index[10];
   static char usage[] = "usage: cat <traces> | ./cachesim [-hv] <config_file>\n";
   int verbose=0;
   struct Cache *icache, *dcache, *l2cache;
@@ -85,25 +85,52 @@ int main(int argc, char* argv[]){
           printf("    index = %llX, tag =   %llx  ", index[i], tag[i]);
         }
         res[i] = readd(icache, tag[i], index[i], op);
+        if (res[i]) {
+          icache->itime+=icache->misstime;
+        }
+        else {
+          icache->itime+=icache->hittime;
+        }
+
         if (verbose) {
           if (res[i]) {
             printf("MISS\n");
+            printf("Add L1i miss time (+ %d)\n", icache->misstime);
           }
           else {
             printf("HIT\n");
+            printf("Add L1i hit time (+ %d)\n", icache->hittime);
           }
         }
         addr[i+1] = updateaddr(icache, addr[i], byte);
         byte=0;
         if (res[i]) {
-          tag[i] = (((~0)<<(l2cache->indexsize+l2cache->bytesize))&addr[i])>>(l2cache->indexsize+l2cache->bytesize);
-          index[i] = (((~((~0)<<l2cache->indexsize))<<l2cache->bytesize)&addr[i])>>(l2cache->bytesize);
+          l2tag[i] = (((~0)<<(l2cache->indexsize+l2cache->bytesize))&addr[i])>>(l2cache->indexsize+l2cache->bytesize);
+          l2index[i] = (((~((~0)<<l2cache->indexsize))<<l2cache->bytesize)&addr[i])>>(l2cache->bytesize);
           if (verbose) {
             printf("Level L2 access addr = %llx, offset = %llx, reftype = Read\n", addr[i], byte);
             printf("    index = %llX, tag =   %llx  ", index[i], tag[i]);
           }
 
-          res[i] = readd(l2cache, tag[i], index[i], op);
+          if (res[i]>1) {
+            res[i] = readd(l2cache, l2tag[i], l2index[i], 'W');
+            if (res[i]>1) {
+              readd(l2cache, l2tag[i], l2index[i], op);
+            }
+
+            res[i] = readd(icache, tag[i], index[i], op);
+            if (res[i]) {
+              readd(l2cache, l2tag[i], l2index[i], op);
+            }
+
+          }
+          else {
+            res[i] = readd(l2cache, l2tag[i], l2index[i], op);
+            if (res[i]>1) {
+              readd(l2cache, l2tag[i], l2index[i], op);
+            }
+          }
+
           if (verbose) {
             if (res[i]) {
               printf("MISS\n");
@@ -142,16 +169,30 @@ int main(int argc, char* argv[]){
         addr[i+1] = updateaddr(dcache, addr[i], byte);
         byte=0;
         if (res[i]) {
-          tag[i] = (((~0)<<(l2cache->indexsize+l2cache->bytesize))&addr[i])>>(l2cache->indexsize+l2cache->bytesize);
-          index[i] = (((~((~0)<<l2cache->indexsize))<<l2cache->bytesize)&addr[i])>>(l2cache->bytesize);
+          l2tag[i] = (((~0)<<(l2cache->indexsize+l2cache->bytesize))&addr[i])>>(l2cache->indexsize+l2cache->bytesize);
+          l2index[i] = (((~((~0)<<l2cache->indexsize))<<l2cache->bytesize)&addr[i])>>(l2cache->bytesize);
           if (verbose) {
             printf("Level L2 access addr = %llx, offset = %llx, reftype = Read\n", addr[i], byte);
             printf("    index = %llX, tag =   %llx  ", index[i], tag[i]);
           }
 
-          res[i] = readd(l2cache, tag[i], index[i], op);
           if (res[i]>1) {
-            readd(l2cache, tag[i], index[i], 'W');
+            res[i] = readd(l2cache, l2tag[i], l2index[i], 'W');
+            if (res[i]>1) {
+              readd(l2cache, l2tag[i], l2index[i], op);
+            }
+
+            res[i] = readd(dcache, tag[i], index[i], op);
+            if (res[i]) {
+              readd(l2cache, l2tag[i], l2index[i], op);
+            }
+          }
+          else {
+            res[i] = readd(l2cache, l2tag[i], l2index[i], op);
+            if (res[i]>1) {
+              readd(l2cache, l2tag[i], l2index[i], op);
+            }
+
           }
           if (verbose) {
             if (res[i]) {
@@ -192,16 +233,30 @@ int main(int argc, char* argv[]){
         addr[i+1] = updateaddr(dcache, addr[i], byte);
         byte=0;
         if (res[i]) {
-          tag[i] = (((~0)<<(l2cache->indexsize+l2cache->bytesize))&addr[i])>>(l2cache->indexsize+l2cache->bytesize);
-          index[i] = (((~((~0)<<l2cache->indexsize))<<l2cache->bytesize)&addr[i])>>(l2cache->bytesize);
+          l2tag[i] = (((~0)<<(l2cache->indexsize+l2cache->bytesize))&addr[i])>>(l2cache->indexsize+l2cache->bytesize);
+          l2index[i] = (((~((~0)<<l2cache->indexsize))<<l2cache->bytesize)&addr[i])>>(l2cache->bytesize);
           if (verbose) {
             printf("Level L2 access addr = %llx, offset = %llx, reftype = Read\n", addr[i], byte);
             printf("    index = %llX, tag =   %llx  ", index[i], tag[i]);
           }
 
-          res[i] = readd(l2cache, tag[i], index[i], op);
           if (res[i]>1) {
-            readd(l2cache, tag[i], index[i], 'W');
+            res[i] = readd(l2cache, l2tag[i], l2index[i], 'W');
+            if (res[i]>1) {
+              readd(l2cache, l2tag[i], l2index[i], op);
+            }
+
+            res[i] = readd(dcache, tag[i], index[i], op);
+            if (res[i]) {
+              readd(l2cache, l2tag[i], l2index[i], op);
+            }
+          }
+          else {
+            res[i] = readd(l2cache, l2tag[i], l2index[i], op);
+            if (res[i]>1) {
+              readd(l2cache, l2tag[i], l2index[i], op);
+            }
+
           }
 
           if (verbose) {
@@ -216,9 +271,13 @@ int main(int argc, char* argv[]){
       }
     }
   }
-  if (verbose) {
-    printcache(icache);
-  }
+  //if (verbose) {
+   // printcache(icache);
+   // printf("\n");
+   // printcache(dcache);
+   // printf("\n");
+ //   printcache(l2cache);
+ // }
   printstuff(icache, dcache, l2cache);
   return 0;
 }

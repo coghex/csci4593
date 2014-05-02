@@ -16,6 +16,8 @@ struct Cache {
   int setlength, indexsize, bytesize;
   unsigned long long hits, misses, wrefs, rrefs;
   unsigned long long dko, ko;
+  unsigned long long itime, rtime, wtime;
+  int hittime, misstime;
 
   struct Block **lruarray;
   struct Block **bloarr;
