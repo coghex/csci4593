@@ -27,7 +27,7 @@ struct Cache *icache;
 struct Cache *dcache;
 struct Cache *l2cache;
 
-struct Cache * initcache(int cachesize, int blocksize, int ways);
+struct Cache * initcache(int cachesize, int blocksize, int ways, int hittime, int misstime);
 int readd(struct Cache* cache,unsigned long long  t, unsigned long long index, char op);
 void printcache(struct Cache *cache);
 void printstuff(struct Cache *icache, struct Cache* dcache, struct Cache* l2cache);

@@ -40,6 +40,7 @@ int main(int argc, char* argv[]){
   static char usage[] = "usage: cat <traces> | ./cachesim [-hv] <config_file>\n";
   int verbose=0;
   struct Cache *icache, *dcache, *l2cache;
+  int memsendaddr=10, memready=50, memchunktime=20, memchunksize=16;
 
   // code to retrive command flags
   while ((c=getopt(argc, argv, "hv"))!=-1) {
@@ -58,9 +59,9 @@ int main(int argc, char* argv[]){
         argvar++;
     }
   }
-  icache = initcache(8192, 32, 4);
-  dcache = initcache(8192, 32, 4);
-  l2cache = initcache(32768, 64, 4);
+  icache = initcache(8192, 32, 1, 1, 1);
+  dcache = initcache(8192, 32, 1, 1, 1);
+  l2cache = initcache(32768, 64, 1, 8, 5);
 
   icache->misses=0;
   while (scanf("%c %llX %d\n",&op,&addr[0],&size)==3) {
@@ -109,7 +110,7 @@ int main(int argc, char* argv[]){
           l2index[i] = (((~((~0)<<l2cache->indexsize))<<l2cache->bytesize)&addr[i])>>(l2cache->bytesize);
           if (verbose) {
             printf("Level L2 access addr = %llx, offset = %llx, reftype = Read\n", addr[i], byte);
-            printf("    index = %llX, tag =   %llx  ", index[i], tag[i]);
+            printf("    index = %llX, tag =   %llx  ", l2index[i], l2tag[i]);
           }
 
           if (res[i]>1) {
@@ -131,12 +132,22 @@ int main(int argc, char* argv[]){
             }
           }
 
+          if (res[i]) {
+            l2cache->rtime+=l2cache->misstime;
+          }
+          else {
+            l2cache->rtime+=l2cache->hittime;
+          }
+
+
           if (verbose) {
             if (res[i]) {
               printf("MISS\n");
+              printf("Add L2 miss time (+ %d)\n", l2cache->misstime);
             }
             else {
               printf("HIT\n");
+              printf("Add L2 hit time (+ %d)\n", l2cache->hittime);
             }
           }
         }
@@ -173,7 +184,7 @@ int main(int argc, char* argv[]){
           l2index[i] = (((~((~0)<<l2cache->indexsize))<<l2cache->bytesize)&addr[i])>>(l2cache->bytesize);
           if (verbose) {
             printf("Level L2 access addr = %llx, offset = %llx, reftype = Read\n", addr[i], byte);
-            printf("    index = %llX, tag =   %llx  ", index[i], tag[i]);
+            printf("    index = %llX, tag =   %llx  ", l2index[i], l2tag[i]);
           }
 
           if (res[i]>1) {
@@ -194,12 +205,20 @@ int main(int argc, char* argv[]){
             }
 
           }
+          if (res[i]) {
+            l2cache->rtime+=l2cache->misstime;
+          }
+          else {
+            l2cache->rtime+=l2cache->hittime;
+          }
           if (verbose) {
             if (res[i]) {
               printf("MISS\n");
+              printf("Add L2 miss time (+ %d)\n", l2cache->misstime);
             }
             else {
               printf("HIT\n");
+              printf("Add L2 hit time (+ %d)\n", l2cache->hittime);
             }
           }
         }
@@ -237,7 +256,7 @@ int main(int argc, char* argv[]){
           l2index[i] = (((~((~0)<<l2cache->indexsize))<<l2cache->bytesize)&addr[i])>>(l2cache->bytesize);
           if (verbose) {
             printf("Level L2 access addr = %llx, offset = %llx, reftype = Read\n", addr[i], byte);
-            printf("    index = %llX, tag =   %llx  ", index[i], tag[i]);
+            printf("    index = %llX, tag =   %llx  ", l2index[i], l2tag[i]);
           }
 
           if (res[i]>1) {

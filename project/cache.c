@@ -65,7 +65,7 @@ void printstuff(struct Cache *icache, struct Cache* dcache, struct Cache* l2cach
   printf("Total cost = $4175\n");
 }
 
-struct Cache * initcache(int cachesize, int blocksize, int ways) {
+struct Cache * initcache(int cachesize, int blocksize, int ways, int misstime, int hittime) {
   struct Cache *cache;
   struct Block *temp;
   int i, j;
@@ -79,8 +79,8 @@ struct Cache * initcache(int cachesize, int blocksize, int ways) {
   cache->bytesize=log(8*cache->blocksize)/log(2);
   cache->hits=0;
   cache->misses=0;
-  cache->misstime=1;
-  cache->hittime=1;
+  cache->misstime=misstime;
+  cache->hittime=hittime;
 
   cache->bloarr=(struct Block **)malloc((cache->setlength*sizeof(struct Block *)));
   for (i=0;i<cache->setlength;i++) {
