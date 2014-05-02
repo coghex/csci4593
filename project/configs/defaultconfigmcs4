@@ -1,0 +1,7 @@
+l1isize 8192
+l1dsize 8192
+l2size 32768
+l1iassoc 1
+l1dassoc 1
+l2assoc 1
+memchunksize 64

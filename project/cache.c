@@ -18,10 +18,26 @@ void printcache(struct Cache *cache) {
   printf("-----------------------------------------------------\n");
 }
 
-void printstuff(struct Cache *icache, struct Cache* dcache, struct Cache* l2cache){
-  unsigned long long tottime;
+int calcost(int level, int size, int associativity) {
+  int result;
+  if (level==1) {
+    result = 100*(size/4096);
+    result += 100*log(associativity)/log(2);
+  }
+  if (level==2) {
+    result = 50*(size/65536);
+    result += 50*log(associativity)/log(2);
+  }
+
+  return result;
+}
+
+void printstuff(struct Cache *icache, struct Cache* dcache, struct Cache* l2cache, int mready, int mchunks, int mchunkt, unsigned long long refnum, unsigned long long misallignment, int memcost){
+  unsigned long long extime;
   struct winsize w;
   int width, i;
+
+  extime=icache->itime+dcache->rtime+dcache->wtime+l2cache->itime+l2cache->rtime+l2cache->wtime;
 
   ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
   width=w.ws_col;
@@ -48,24 +64,23 @@ void printstuff(struct Cache *icache, struct Cache* dcache, struct Cache* l2cach
   printf("    Dcache Size = %d : ways = %d : block size = %d\n", dcache->cachesize,dcache->ways,dcache->blocksize);
   printf("    Icache Size = %d : ways = %d : block size = %d\n", icache->cachesize,icache->ways,icache->blocksize);
   printf("    L2-cache Size = %d : ways = %d : block size = %d\n", l2cache->cachesize, l2cache->ways,l2cache->blocksize);
-  printf("    Memory ready  time = %d : chunksize = %d : chunktime = %d\n\n", 0,0,0);
-  printf("Execute Time = %d; Total References = %d\n", 0, 0);
-  printf("Instruction Refereneces = %d; Data refs = %d\n",0,0);
+  printf("    Memory ready  time = %d : chunksize = %d : chunktime = %d\n\n", mready,mchunks,mchunkt);
+  printf("Execute Time = %lld; Total References = %lld\n", extime, refnum+1);
+  printf("Instruction Refereneces = %lld; Data refs = %lld\n",icache->rrefs,dcache->wrefs+dcache->rrefs);
   printf("Number of references types: [Percentage]\n");
   printf("    Reads  =     %lld    [%f%%]\n",dcache->rrefs,100*((double)dcache->rrefs)/(dcache->rrefs+dcache->wrefs+icache->rrefs));
   printf("    Writes =     %lld    [%f%%]\n",dcache->wrefs,100*((double)dcache->wrefs)/(dcache->rrefs+dcache->wrefs+icache->rrefs));
   printf("    Inst.  =     %lld    [%f%%]\n",icache->rrefs,100*((double)icache->rrefs)/(dcache->rrefs+dcache->wrefs+icache->rrefs));
   printf("    Total  =     %lld\n",dcache->rrefs+dcache->wrefs+icache->rrefs);
-  printf("Total cycles for activiites: [Percentage]\n");
-  tottime=dcache->rtime+l2cache->rtime+dcache->wtime+l2cache->wtime+icache->itime+l2cache->itime;
-  printf("    Reads  =     %lld    [%f%%]\n",dcache->rtime+l2cache->rtime,100*((double)(dcache->rtime+l2cache->rtime))/tottime);
-  printf("    Writes =     %lld    [%f%%]\n",dcache->wtime+l2cache->wtime,100*((double)(dcache->wtime+l2cache->wtime))/tottime);
-  printf("    Inst.  =     %lld    [%f%%]\n",icache->itime+l2cache->itime,100*((double)(icache->itime+l2cache->itime))/tottime);
-  printf("    Total  =     %lld\n",tottime);
+  printf("Total cycles for activities: [Percentage]\n");
+  printf("    Reads  =     %lld    [%f%%]\n",dcache->rtime+l2cache->rtime,100*((double)(dcache->rtime+l2cache->rtime))/extime);
+  printf("    Writes =     %lld    [%f%%]\n",dcache->wtime+l2cache->wtime,100*((double)(dcache->wtime+l2cache->wtime))/extime);
+  printf("    Inst.  =     %lld    [%f%%]\n",icache->itime+l2cache->itime,100*((double)(icache->itime+l2cache->itime))/extime);
+  printf("    Total  =     %lld\n",extime);
   printf("Average cycles for activiites: [Percentage]\n");
-  printf("  Read =  %f; Write =  %f; Inst. =  %f\n",0.0,0.0,0.0);
-  printf("Ideal: Exec. Time = %d; CPI =  %f\n",0,0.0);
-  printf("Ideal mis-aligned: Exec. Time = %d; CPI =  %f\n\n",0,0.0);
+  printf("  Read =  %f; Write =  %f; Inst. =  %f\n",((double)dcache->rtime+l2cache->rtime)/(dcache->rrefs),((double)dcache->wtime+l2cache->wtime)/(dcache->wrefs),((double)extime)/(icache->rrefs));
+  printf("Ideal: Exec. Time = %lld; CPI =  %f\n",dcache->rrefs+dcache->wrefs+2*icache->rrefs,((double)dcache->rrefs+dcache->wrefs+2*icache->rrefs)/(icache->rrefs));
+  printf("Ideal mis-aligned: Exec. Time = %lld; CPI =  %f\n\n",dcache->rrefs+dcache->wrefs+2*icache->rrefs+misallignment,((double)dcache->rrefs+dcache->wrefs+2*icache->rrefs+misallignment)/(icache->rrefs));
   printf("Memory Level: L1i\n");
   printf("    Hit Count = %lld  Miss Count = %lld\n",icache->hits,icache->misses);
   printf("    Total Requests = %lld\n",icache->hits+icache->misses);
@@ -84,9 +99,9 @@ void printstuff(struct Cache *icache, struct Cache* dcache, struct Cache* l2cach
   printf("    Hit Rate = %f%%   Miss Rate = %f%%\n",100*((float)(l2cache->hits)/(l2cache->hits+l2cache->misses)),100*((float)(l2cache->misses)/(l2cache->misses+l2cache->hits)));
   printf("    Kickouts = %lld; Dirty Kickouts = %lld; Transfers = %lld\n",l2cache->ko,l2cache->dko,l2cache->misses);
   printf("\n");
-  printf("L1 cache cost (Icache $1800) + (Dcache $1800) = $3600\n");
-  printf("L2 cache cost = $500;   Memory Cost = $75\n");
-  printf("Total cost = $4175\n\n");
+  printf("L1 cache cost (Icache $%d) + (Dcache $%d) = $%d\n", icache->cost, dcache->cost, icache->cost+dcache->cost);
+  printf("L2 cache cost = $%d;   Memory Cost = $%d\n", l2cache->cost, memcost);
+  printf("Total cost = $%d\n\n", memcost+icache->cost+dcache->cost+l2cache->cost);
 
   for(i=0;i<width;i++) {
     printf("-");
