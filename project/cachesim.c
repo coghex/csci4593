@@ -17,7 +17,9 @@ unsigned long long updateaddr(struct Cache *cache, unsigned long long addrin, in
 }
 
 unsigned long long reconstruct(struct Cache *cache, unsigned long long tag, unsigned long long index) {
-  return (tag<<(cache->bytesize+cache->indexsize))&(index<<cache->bytesize);
+  unsigned long long result;
+  result = (tag<<(cache->bytesize+cache->indexsize))|(index<<cache->bytesize);
+  return result;
 }
 
 int refs(int byte, int size, int blocksize) {
@@ -170,6 +172,9 @@ int main(int argc, char* argv[]){
             res[i] = readd(icache, tag[i], index[i], op);
             if (res[i]) {
               readd(l2cache, l2tag[i], l2index[i], op);
+              if (res[i]>1) {
+                readd(l2cache, l2tag[i], l2index[i], op);
+              }
             }
 
           }
@@ -268,6 +273,9 @@ int main(int argc, char* argv[]){
             res[i] = readd(dcache, tag[i], index[i], op);
             if (res[i]) {
               readd(l2cache, l2tag[i], l2index[i], op);
+              if (res[i]>1) {
+                readd(l2cache, l2tag[i], l2index[i], op);
+              }
             }
           }
           else {
@@ -369,6 +377,9 @@ int main(int argc, char* argv[]){
             res[i] = readd(dcache, tag[i], index[i], op);
             if (res[i]) {
               readd(l2cache, l2tag[i], l2index[i], op);
+              if (res[i]>1) {
+                readd(l2cache, l2tag[i], l2index[i], op);
+              }
             }
           }
           else {

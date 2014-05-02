@@ -19,17 +19,23 @@ void printcache(struct Cache *cache) {
 }
 
 int calcost(int level, int size, int associativity) {
-  int result;
+  double result;
+  int i;
   if (level==1) {
     result = 100*(size/4096);
-    result += 100*log(associativity)/log(2);
+    for (i=0;i<size/4096;i++) {
+      result += 100*log(associativity)/log(2);
+    }
   }
   if (level==2) {
+    if (size%65536) {
+      size+=(65536-size);
+    }
     result = 50*(size/65536);
     result += 50*log(associativity)/log(2);
   }
 
-  return result;
+  return (int)result;
 }
 
 void printstuff(struct Cache *icache, struct Cache* dcache, struct Cache* l2cache, int mready, int mchunks, int mchunkt, unsigned long long refnum, unsigned long long misallignment, int memcost){
