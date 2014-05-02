@@ -16,6 +16,10 @@ unsigned long long updateaddr(struct Cache *cache, unsigned long long addrin, in
   return addr;
 }
 
+unsigned long long reconstruct(struct Cache *cache, unsigned long long tag, unsigned long long index) {
+  return (tag<<(cache->bytesize+cache->indexsize))&(index<<cache->bytesize);
+}
+
 int refs(int byte, int size, int blocksize) {
   int len;
   if ((size+(byte%blocksize))%blocksize) {
@@ -35,8 +39,8 @@ int main(int argc, char* argv[]){
   int c, i,j;
   int argvar=2;
   int isc=0;
-  int res[10];
-  unsigned long long tag[10], index[10], byte, l2tag[10], l2index[10];
+  unsigned long long res[10];
+  unsigned long long tag[10], index[10], byte, l2tag[10], l2index[10], wbaddr, wbtag, wbindex;
   static char usage[] = "usage: cat <traces> | ./cachesim [-hv] <config_file>\n";
   int verbose=0;
   struct Cache *icache, *dcache, *l2cache;
@@ -114,9 +118,12 @@ int main(int argc, char* argv[]){
           }
 
           if (res[i]>1) {
-            res[i] = readd(l2cache, l2tag[i], l2index[i], 'W');
+            wbaddr = reconstruct(icache, res[i], index[i]);
+            wbtag = (((~0)<<(l2cache->indexsize+l2cache->bytesize))&wbaddr)>>(l2cache->indexsize+l2cache->bytesize);
+            wbindex = (((~((~0)<<l2cache->indexsize))<<l2cache->bytesize)&wbaddr)>>(l2cache->bytesize);
+            res[i] = readd(l2cache, wbtag, wbindex, 'W');
             if (res[i]>1) {
-              readd(l2cache, l2tag[i], l2index[i], op);
+              readd(l2cache, wbtag, wbindex, op);
             }
 
             res[i] = readd(icache, tag[i], index[i], op);
@@ -188,9 +195,12 @@ int main(int argc, char* argv[]){
           }
 
           if (res[i]>1) {
-            res[i] = readd(l2cache, l2tag[i], l2index[i], 'W');
+            wbaddr = reconstruct(dcache, res[i], index[i]);
+            wbtag = (((~0)<<(l2cache->indexsize+l2cache->bytesize))&wbaddr)>>(l2cache->indexsize+l2cache->bytesize);
+            wbindex = (((~((~0)<<l2cache->indexsize))<<l2cache->bytesize)&wbaddr)>>(l2cache->bytesize);
+            res[i] = readd(l2cache, wbtag, wbindex, 'W');
             if (res[i]>1) {
-              readd(l2cache, l2tag[i], l2index[i], op);
+              readd(l2cache, wbtag, wbindex, op);
             }
 
             res[i] = readd(dcache, tag[i], index[i], op);
@@ -260,9 +270,13 @@ int main(int argc, char* argv[]){
           }
 
           if (res[i]>1) {
-            res[i] = readd(l2cache, l2tag[i], l2index[i], 'W');
+            wbaddr = reconstruct(dcache, res[i], index[i]);
+            wbtag = (((~0)<<(l2cache->indexsize+l2cache->bytesize))&wbaddr)>>(l2cache->indexsize+l2cache->bytesize);
+            wbindex = (((~((~0)<<l2cache->indexsize))<<l2cache->bytesize)&wbaddr)>>(l2cache->bytesize);
+            res[i] = readd(l2cache, wbtag, wbindex, 'W');
+
             if (res[i]>1) {
-              readd(l2cache, l2tag[i], l2index[i], op);
+              readd(l2cache, wbtag, wbindex, op);
             }
 
             res[i] = readd(dcache, tag[i], index[i], op);

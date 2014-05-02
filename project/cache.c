@@ -20,6 +20,30 @@ void printcache(struct Cache *cache) {
 
 void printstuff(struct Cache *icache, struct Cache* dcache, struct Cache* l2cache){
   unsigned long long tottime;
+  struct winsize w;
+  int width, i;
+
+  ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
+  width=w.ws_col;
+  for(i=0;i<width;i++) {
+    printf("-");
+  }
+  printf("\n");
+
+  for(i=0;i<(width/2-9);i++) {
+    printf(" ");
+  }
+  printf("Simulation Results");
+  for(i=0;i<(width/2-9);i++) {
+    printf(" ");
+  }
+  printf("\n");
+
+  for(i=0;i<width;i++) {
+    printf("-");
+  }
+  printf("\n\n");
+
   printf("Memory System:\n");
   printf("    Dcache Size = %d : ways = %d : block size = %d\n", dcache->cachesize,dcache->ways,dcache->blocksize);
   printf("    Icache Size = %d : ways = %d : block size = %d\n", icache->cachesize,icache->ways,icache->blocksize);
@@ -62,7 +86,12 @@ void printstuff(struct Cache *icache, struct Cache* dcache, struct Cache* l2cach
   printf("\n");
   printf("L1 cache cost (Icache $1800) + (Dcache $1800) = $3600\n");
   printf("L2 cache cost = $500;   Memory Cost = $75\n");
-  printf("Total cost = $4175\n");
+  printf("Total cost = $4175\n\n");
+
+  for(i=0;i<width;i++) {
+    printf("-");
+  }
+  printf("\n");
 }
 
 struct Cache * initcache(int cachesize, int blocksize, int ways, int misstime, int hittime) {
@@ -101,10 +130,9 @@ struct Cache * initcache(int cachesize, int blocksize, int ways, int misstime, i
   return cache;
 }
 
-int readd(struct Cache* cache,unsigned long long  t, unsigned long long index, char op){
-    int i, j, res;
+unsigned long long readd(struct Cache* cache,unsigned long long  t, unsigned long long index, char op){
+    int i, j;
     struct Block *t1, *t2;
-    res=1;
     for (j=0;j<cache->ways;j++) {
       if (cache->bloarr[index][j].tag==t) {
         if (!cache->bloarr[index][j].valid) {
@@ -152,7 +180,8 @@ int readd(struct Cache* cache,unsigned long long  t, unsigned long long index, c
       cache->dko++;
       t1->dirty=0;
       t1->valid=0;
-      return 2;
+
+      return t1->tag;
     }
 
 
