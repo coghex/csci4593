@@ -32,7 +32,7 @@ int main(int argc, char* argv[]){
   int refnum=-1;
   unsigned long long addr[10];
   int size, length;
-  int c, i;
+  int c, i,j;
   int argvar=2;
   int isc=0;
   int res[10];
@@ -70,6 +70,7 @@ int main(int argc, char* argv[]){
     refnum++;
 
     if (op == 'I') {
+      icache->rrefs++;
       byte = (~((~0)<<icache->bytesize))&addr[0];
       length = refs(byte, size, icache->blocksize);
       addr[0] = addr[0]&(~3);
@@ -114,7 +115,8 @@ int main(int argc, char* argv[]){
         }
       }
     }
-     if (op == 'R') {
+    if (op == 'R') {
+      dcache->rrefs++;
       byte = (~((~0)<<dcache->bytesize))&addr[0];
       length = refs(byte, size, dcache->blocksize);
       addr[0] = addr[0]&(~3);
@@ -148,6 +150,9 @@ int main(int argc, char* argv[]){
           }
 
           res[i] = readd(l2cache, tag[i], index[i], op);
+          if (res[i]>1) {
+            readd(l2cache, tag[i], index[i], 'W');
+          }
           if (verbose) {
             if (res[i]) {
               printf("MISS\n");
@@ -161,6 +166,7 @@ int main(int argc, char* argv[]){
     }
 
     if (op == 'W') {
+      dcache->wrefs++;
       byte = (~((~0)<<dcache->bytesize))&addr[0];
       length = refs(byte, size, dcache->blocksize);
       addr[0] = addr[0]&(~3);
@@ -194,6 +200,10 @@ int main(int argc, char* argv[]){
           }
 
           res[i] = readd(l2cache, tag[i], index[i], op);
+          if (res[i]>1) {
+            readd(l2cache, tag[i], index[i], 'W');
+          }
+
           if (verbose) {
             if (res[i]) {
               printf("MISS\n");

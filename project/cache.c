@@ -27,10 +27,10 @@ void printstuff(struct Cache *icache, struct Cache* dcache, struct Cache* l2cach
   printf("Execute Time = %d; Total References = %d\n", 0, 0);
   printf("Instruction Refereneces = %d; Data refs = %d\n",0,0);
   printf("Number of references types: [Percentage]\n");
-  printf("    Reads  =     %d    [%f%%]\n",0,0.0);
-  printf("    Writes =     %d    [%f%%]\n",0,0.0);
-  printf("    Inst.  =     %d    [%f%%]\n",0,0.0);
-  printf("    Total  =     %d\n",0);
+  printf("    Reads  =     %lld    [%f%%]\n",dcache->rrefs,0.0);
+  printf("    Writes =     %lld    [%f%%]\n",dcache->wrefs,0.0);
+  printf("    Inst.  =     %lld    [%f%%]\n",icache->rrefs,0.0);
+  printf("    Total  =     %lld\n",dcache->rrefs+dcache->wrefs+icache->rrefs);
   printf("Total cycles for activiites: [Percentage]\n");
   printf("    Reads  =     %d    [%f%%]\n",0,0.0);
   printf("    Writes =     %d    [%f%%]\n",0,0.0);
@@ -44,19 +44,19 @@ void printstuff(struct Cache *icache, struct Cache* dcache, struct Cache* l2cach
   printf("    Hit Count = %lld  Miss Count = %lld\n",icache->hits,icache->misses);
   printf("    Total Requests = %lld\n",icache->hits+icache->misses);
   printf("    Hit Rate = %f%%   Miss Rate = %f%%\n",((float)(icache->hits)/(icache->hits+icache->misses)),((float)(icache->misses)/(icache->misses+icache->hits)));
-  printf("    Kickouts = %d; Dirty Kickouts = %d; Transfers = %d\n",0,0,0);
+  printf("    Kickouts = %lld; Dirty Kickouts = %lld; Transfers = %lld\n",icache->ko,icache->dko,icache->misses);
   printf("\n");
   printf("Memory Level: L1d\n");
   printf("    Hit Count = %lld  Miss Count = %lld\n",dcache->hits,dcache->misses);
   printf("    Total Requests = %lld\n",dcache->hits+dcache->misses);
   printf("    Hit Rate = %f%%   Miss Rate = %f%%\n",((float)(dcache->hits)/(dcache->hits+dcache->misses)),((float)(dcache->misses)/(dcache->misses+dcache->hits)));
-  printf("    Kickouts = %d; Dirty Kickouts = %d; Transfers = %d\n",0,0,0);
+  printf("    Kickouts = %lld; Dirty Kickouts = %lld; Transfers = %lld\n",dcache->ko,dcache->dko,dcache->misses);
   printf("\n");
   printf("Memory Level: L2\n");
   printf("    Hit Count = %lld  Miss Count = %lld\n",l2cache->hits,l2cache->misses);
   printf("    Total Requests = %lld\n",l2cache->hits+l2cache->misses);
   printf("    Hit Rate = %f%%   Miss Rate = %f%%\n",(float)(l2cache->hits/(l2cache->hits+l2cache->misses)),(float)(l2cache->misses/(l2cache->misses+l2cache->hits)));
-  printf("    Kickouts = %d; Dirty Kickouts = %d; Transfers = %d\n",0,0,0);
+  printf("    Kickouts = %lld; Dirty Kickouts = %lld; Transfers = %lld\n",l2cache->ko,l2cache->dko,l2cache->misses);
   printf("\n");
   printf("L1 cache cost (Icache $1800) + (Dcache $1800) = $3600\n");
   printf("L2 cache cost = $500;   Memory Cost = $75\n");
@@ -98,8 +98,9 @@ struct Cache * initcache(int cachesize, int blocksize, int ways) {
 }
 
 int readd(struct Cache* cache,unsigned long long  t, unsigned long long index, char op){
-    int i, j;
+    int i, j, res;
     struct Block *t1, *t2;
+    res=1;
     for (j=0;j<cache->ways;j++) {
       if (cache->bloarr[index][j].tag==t) {
         cache->hits++;
@@ -127,6 +128,23 @@ int readd(struct Cache* cache,unsigned long long  t, unsigned long long index, c
       }
     }
     cache->misses++;
+
+    t1=cache->lruarray[index];
+
+    while (t1->lru!=NULL) {
+      t1=t1->lru;
+    }
+    if (t1->dirty==1) {
+      cache->dko++;
+      t1->dirty=0;
+      res++;
+    }
+
+    if (t1->valid==1) {
+      cache->ko++;
+
+    }
+
     t1=cache->lruarray[index];
 
     while (t1->lru!=NULL) {
@@ -146,11 +164,5 @@ int readd(struct Cache* cache,unsigned long long  t, unsigned long long index, c
     }
     t1->lru=NULL;
 
-    for (i=0;i<cache->ways;i++) {
-      if (cache->lruarray[index]==&cache->bloarr[index][i]) {
-        return 1;
-      }
-    }
-
-    return 1;
+    return res;
 }

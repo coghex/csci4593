@@ -14,7 +14,8 @@ struct Block {
 struct Cache {
   int cachesize, blocksize, ways;
   int setlength, indexsize, bytesize;
-  unsigned long long hits, misses;
+  unsigned long long hits, misses, wrefs, rrefs;
+  unsigned long long dko, ko;
 
   struct Block **lruarray;
   struct Block **bloarr;
