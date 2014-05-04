@@ -91,11 +91,60 @@
 
 \maketitle
 
+
+\section{Introduction}
+
 Cache configurations are not a one size fits all job.  Some cache's are better than others for specific
 applications.  For example, a multiway cache will benifit a system that has limited space, as hit rates
 will increase.  A direct-mapped cache will be better for a larger cache, since our hit times will be very
-fast.
+fast.  Our simulations are an attempt to discover some of these facts.  We created a simulator that will
+preform instruction, read, and write operations on any associativity or size cache.  This cache system
+included a hierarchy of a level 1 instruction cache, a level 1 data cache, and a unified level two cache.
+The caches are all write-allocate, write-back, meaning writes will immidiately write to the cache, and any
+data in the cache that has been written must be accounted for and lazily written back down to level two and
+eventually main memory.  All caches maintain their own Least Recently Used (LRU) policy in order to preform
+the best that they can given information at any point in execution.  We measured many metrics, such as hit
+time, miss time, cost, CPI, ideal times, and kickouts.  Although many things are idealized, this simulator
+is very similar to what you would see in a modern computing machine.
+
+\section{Design}
+There were several design considerations of note that must be addressed.  The first concern of ours, was one
+of memory.  The stack was stored as an array of structures in heap memory.  This was mainly for speed reasons.
+An array is generally faster than a linked list when we dont know where in the list we are going.  The second
+consideration was how to design the requests.  We found it to be simplist to split the simulator, much like a
+computer does, into the CPU portion, and the cache portion.  The CPU decides how many references it needs, and
+decides what to do when it gets a hit, miss, or dirty kickout.  The cache portion, on the other hand, was a
+simple machine.  It took the address and the cache it was looking in and that is essentially it.  It returned
+a hit, miss, or the tag of a dirty kickout that it received.  The CPU simulater then decides what to do with
+this information.  The last important consideration was the LRU system.  We knew that the fastest solution
+would be to provide each block with a number that would represent it's place in the LRU.  This would be a
+constant time solution.  This, however, led to some difficulties in implementation when we had variable sized
+caches.  We instead went with a linked list structure.  This made it easy to program, and we knew that for
+every cache other than the fully associative, this time would be relatively minimal.
+
+The use of the code is quite simple.  The inluded makefile will build the program on our versions of Mac OSX
+10.9 and Arch Linux.  just typing make is sufficient, while make clean will remove the compiled files.  The
+libraries used are quite simple.  libc and the POSIX standard library are all that is required.  Once built
+the program will be called cachesim.  At that point it can be run with an option describing some features.
+cachesim -v will run in "verbose" mode, where each cache reference and clock cycle will be spelled out step
+by step.  Besides helping in debugging, it is quite relaxing to watch all the text fly by.  cachesim -h will
+print out the usage: "usage: cat $<$traces$>$ $|$ ./cachesim [-hv] $<$config\_file$>$".  Note that the traces
+must be sent in through stdin, any other form of stdin will work as well, not just cat.  The config file takes
+the form of a series of lines, each with a parameter, followed by a space, then a value.  For example, a line
+could be "l1dassoc 4".  That would set the level 1 data cache to a 4-way set associative cache.  A full list
+can be seen in the code, or in the example config files provided.
+
+\section{Simulation}
+The simulations were run on multiple cores of a PC running Arch Linux virtualized in a windows enviornment.
+In total they were run in a little over 20 hours.  The simulations included a number of traces that tested
+a variaty of typical operations a computer would run.  Not suprisingly the simulations of the fully
+associative caches took almost twice as long as the direct mapped ones.  The LRU's linked list had to be
+traversed and reorganized on almost every reference.  This meant slow references, as well as a much less
+efficient real-life cache.  We simluated each of the 5 traces on 10 different caches.  Additionally, the
+omnetpp simulation was run on systems with multiple memory chunk sizes from cache to main memory.  We will
+preform cost benifit analysis on this later.
+
+\section{Results}
 
 
 \end{document}
-

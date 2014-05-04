@@ -1,0 +1,49 @@
+Starting Sjeng
+sjeng.default:
+
+Memory System:
+    Dcache Size = 8192 : ways = 1 : block size = 4
+    Icache Size = 8192 : ways = 1 : block size = 4
+    L2-cache Size = 32768 : ways = 1 : block size = 8
+    Memory ready  time = 50 : chunksize = 16 : chunktime = 20
+
+Execute Time = 50580207796; Total References = 10000000000
+Instruction Refereneces = 7355935225; Data refs = 2644064775
+Number of references types: [Percentage]
+    Reads  =     1892411647    [18.924116%]
+    Writes =     751653128    [7.516531%]
+    Inst.  =     7355935225    [73.559352%]
+    Total  =     10000000000
+Total cycles for activities: [Percentage]
+    Reads  =     14932387201    [29.522194%]
+    Writes =     9493631466    [18.769459%]
+    Inst.  =     26154189129    [51.708347%]
+    Total  =     50580207796
+Average cycles for activiites: [Percentage]
+  Read =  7.890665; Write =  12.630336; Inst. =  6.876108
+Ideal: Exec. Time = 17355935225; CPI =  2.359446
+Ideal mis-aligned: Exec. Time = 23289555313; CPI =  3.166090
+
+Memory Level: L1i
+    Hit Count = 12312377087  Miss Count = 231987718
+    Total Requests = 12544364805
+    Hit Rate = 98.150665%   Miss Rate = 1.849338%
+    Kickouts = 231987462; Dirty Kickouts = 0; Transfers = 231987718
+
+Memory Level: L1d
+    Hit Count = 3191666517  Miss Count = 197588766
+    Total Requests = 3389255283
+    Hit Rate = 94.170143%   Miss Rate = 5.829858%
+    Kickouts = 197588510; Dirty Kickouts = 89091858; Transfers = 197588766
+
+Memory Level: L2
+    Hit Count = 359152412  Miss Count = 129567313
+    Total Requests = 488719725
+    Hit Rate = 73.488426%   Miss Rate = 26.511580%
+    Kickouts = 134949794; Dirty Kickouts = 38065121; Transfers = 129567313
+
+L1 cache cost (Icache $200) + (Dcache $200) = $400
+L2 cache cost = $50;   Memory Cost = $75
+Total cost = $525
+
+sjeng.all2way:

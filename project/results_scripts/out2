@@ -1,0 +1,53 @@
+Starting Bzip2
+bzip2.default:
+----------------------------------------------------------------
+                       Simulation Results                       
+----------------------------------------------------------------
+
+Memory System:
+    Dcache Size = 8192 : ways = 1 : block size = 4
+    Icache Size = 8192 : ways = 1 : block size = 4
+    L2-cache Size = 32768 : ways = 1 : block size = 8
+    Memory ready  time = 50 : chunksize = 16 : chunktime = 20
+
+Execute Time = 39653990647; Total References = 10000000000
+Instruction Refereneces = 7558386724; Data refs = 2441613276
+Number of references types: [Percentage]
+    Reads  =     1874397115    [18.743971%]
+    Writes =     567216161    [5.672162%]
+    Inst.  =     7558386724    [75.583867%]
+    Total  =     10000000000
+Total cycles for activities: [Percentage]
+    Reads  =     18019943832    [45.442952%]
+    Writes =     9646113868    [24.325708%]
+    Inst.  =     11987932947    [30.231341%]
+    Total  =     39653990647
+Average cycles for activiites: [Percentage]
+  Read =  9.613728; Write =  17.006063; Inst. =  5.246356
+Ideal: Exec. Time = 17558386724; CPI =  2.323034
+Ideal mis-aligned: Exec. Time = 22066707013; CPI =  2.919500
+
+Memory Level: L1i
+    Hit Count = 11965504642  Miss Count = 1088311
+    Total Requests = 11966592953
+    Hit Rate = 99.990906%   Miss Rate = 0.009095%
+    Kickouts = 1088055; Dirty Kickouts = 0; Transfers = 1088311
+
+Memory Level: L1d
+    Hit Count = 2360740266  Miss Count = 180987070
+    Total Requests = 2541727336
+    Hit Rate = 92.879372%   Miss Rate = 7.120633%
+    Kickouts = 180986814; Dirty Kickouts = 75658750; Transfers = 180987070
+
+Memory Level: L2
+    Hit Count = 64510489  Miss Count = 140386496
+    Total Requests = 204896985
+    Hit Rate = 31.484350%   Miss Rate = 68.515648%
+    Kickouts = 143198149; Dirty Kickouts = 67726613; Transfers = 140386496
+
+L1 cache cost (Icache $200) + (Dcache $200) = $400
+L2 cache cost = $50;   Memory Cost = $75
+Total cost = $525
+
+----------------------------------------------------------------
+bzip2.all2way:

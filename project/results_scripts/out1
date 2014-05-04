@@ -1,0 +1,53 @@
+Starting Omnetpp with memchunksize=64
+omnetpp64.default:
+----------------------------------------------------------------
+                       Simulation Results                       
+----------------------------------------------------------------
+
+Memory System:
+    Dcache Size = 8192 : ways = 1 : block size = 4
+    Icache Size = 8192 : ways = 1 : block size = 4
+    L2-cache Size = 32768 : ways = 1 : block size = 8
+    Memory ready  time = 50 : chunksize = 64 : chunktime = 20
+
+Execute Time = 66367680535; Total References = 10000000000
+Instruction Refereneces = 6752816355; Data refs = 3247183645
+Number of references types: [Percentage]
+    Reads  =     2009285423    [20.092854%]
+    Writes =     1237898222    [12.378982%]
+    Inst.  =     6752816355    [67.528164%]
+    Total  =     10000000000
+Total cycles for activities: [Percentage]
+    Reads  =     28228366961    [42.533303%]
+    Writes =     6777024447    [10.211332%]
+    Inst.  =     31362289127    [47.255364%]
+    Total  =     66367680535
+Average cycles for activiites: [Percentage]
+  Read =  14.048958; Write =  5.474622; Inst. =  9.828148
+Ideal: Exec. Time = 16752816355; CPI =  2.480864
+Ideal mis-aligned: Exec. Time = 24142954060; CPI =  3.575242
+
+Memory Level: L1i
+    Hit Count = 11006133158  Miss Count = 455112931
+    Total Requests = 11461246089
+    Hit Rate = 96.029114%   Miss Rate = 3.970885%
+    Kickouts = 455112675; Dirty Kickouts = 0; Transfers = 455112931
+
+Memory Level: L1d
+    Hit Count = 5562301532  Miss Count = 366590084
+    Total Requests = 5928891616
+    Hit Rate = 93.816887%   Miss Rate = 6.183114%
+    Kickouts = 366589828; Dirty Kickouts = 162590750; Transfers = 366590084
+
+Memory Level: L2
+    Hit Count = 627155694  Miss Count = 298207747
+    Total Requests = 925363441
+    Hit Rate = 67.773987%   Miss Rate = 32.226009%
+    Kickouts = 315051823; Dirty Kickouts = 82969600; Transfers = 298207747
+
+L1 cache cost (Icache $200) + (Dcache $200) = $400
+L2 cache cost = $50;   Memory Cost = $675
+Total cost = $1125
+
+----------------------------------------------------------------
+omnetpp64.all2way:
