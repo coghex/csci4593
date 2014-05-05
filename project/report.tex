@@ -25,7 +25,6 @@
 \usepackage{qtree}
 \usepackage{pgfplots}
 \usepackage{pdflscape}
-\usepackage{rotating}
 %\usepackage{gensymb}
 
 \usetikzlibrary{calc}
@@ -148,6 +147,7 @@ omnetpp simulation was run on systems with multiple memory chunk sizes from cach
 preform cost benifit analysis on this later.
 
 \section{Results}
+\subsection{Cache Configuration}
 The best way to present this data, in our minds, is to represent it as a ratio of the real time over the
 ideal time.  Since many of the traces vary in ideal execution time, but are mostly proportional to the
 stack parameters, the best option to initally analyse the data is to average out the values from each
@@ -188,34 +188,158 @@ does not take into account the amount of time it takes to move down the LRU list
 reference.  It is also extremely expensive, as we will show later on.  The large L2 cache is sufficient to
 allow more hits of older data.  This is great, but comes at the cost of a larger cache.
 
+\subsection{Cost}
+
 Cost considerations are very important when considering which cache to choose.  If we manufacture processors,
-what matters to us is the bottom line, profit.  The ratio of perfomance over cost can be seen below.
+what matters to us is the bottom line, profit.  The cost multiplied by the preformance as measured above can
+give us a good idea of the "best" cache system.
 
 \begin{center}
 \begin{tikzpicture}
 \begin{axis}[
     ybar,
     enlargelimits=0.15,
-    title=Execution Time Proportional to Ideal Execution Time,
-    ylabel=Ratio Compared to Ideal,
+    title=Cost Multiplied by Normalized Execution Time,
+    scaled y ticks = false,
+    yticklabels={,,},
     legend style={at={(0.5,-0.2)},
       anchor=north,legend columns=-1},
     symbolic x coords={default, l1-2way, all-2way, l2-4way, all-4way, l2-big, l1i-small, l1d-small, l1-small, all-FA},
     xtick=data,
-    nodes near coords,
-	    nodes near coords align={vertical},
     x tick label style={rotate=45,anchor=east},
     width=16cm,
     height=12cm
 ]
 \addplot
-coordinates {(default, 0.000110357) (l1-2way, 0.0000714056) (all-2way, 0.00006765442) (l2-4way, 0.00006885037)
-(all-4way, 0.00005244801) (l2-big, 0.00008127108) (l1i-small, 0.000129710097) (l1d-small, 0.0001146657)
-(l1-small, 0.0001429132) (all-FA, 0.00001974616)};
+coordinates {(default, 9061.5) (l1-2way, 14004.5) (all-2way, 14781) (l2-4way, 14524.25)
+(all-4way, 19066.5) (l2-big, 12304.5) (l1i-small,  7709.5) (l1d-small, 8721)
+(l1-small, 6997.25) (all-FA, 50642.75)};
 \end{axis}
 \end{tikzpicture}
 \end{center}
 
+In this graph, it is clear how poor the fully associative cache actually is.  We would much prefer to use any of the
+others.  The low cost of the small caches makes them ideal for the situations we put them through.  Part of the
+reason for this is the unrealistic cache times that we gave the system.  We assumed that a L1 cache will have the
+same hit and miss time.  This means that a small, low associative L1 cache is best, and a large L2 cache is best.
+This is also why our default cache preformed so well.  Miss rates were not as important in the cache as things like
+the avoidance of going to main memory.
 
+\subsection{CPI}
+
+CPI is important to know if you are going to be preforming a specific operation with the machine.  A mathematical
+program may use many instruction references but low reads and writes.  A text editor may do nothing but writes.
+This means we must know the cycles per instruction.  Once again this value was normalized with the ideal CPI
+then averaged over all traces.
+
+\begin{center}
+\begin{tikzpicture}
+\begin{axis}[
+    ybar,
+    enlargelimits=0.15,
+    title=Real CPI Proportional to Ideal CPI,
+    ylabel=Ratio Compared to Ideal,
+    legend style={at={(0.5,-0.2)},
+      anchor=north,legend columns=-1},
+    symbolic x coords={default, l1-2way, all-2way, l2-4way, all-4way, l2-big, l1i-small, l1d-small, l1-small, all-FA},
+    xtick=data,
+    x tick label style={
+		/pgf/number format/1000 sep=},
+    %nodes near coords,
+	  %  nodes near coords align={vertical},
+    x tick label style={rotate=45,anchor=east},
+    width=16cm,
+    height=12cm,
+    bar width=7pt,
+]
+\addplot
+coordinates {(default, 4.77) (l1-2way, 3.79) (all-2way, 3.71) (l2-4way, 3.66)
+(all-4way, 3.34) (l2-big, 3.37) (l1i-small, 4.80) (l1d-small, 6.52)
+(l1-small, 4.80) (all-FA, 2.94)};
+
+\addplot
+coordinates {(default, 5.20) (l1-2way, 4.85) (all-2way, 4.83) (l2-4way, 4.81)
+(all-4way, 4.60) (l2-big, 4.69) (l1i-small, 5.21) (l1d-small, 5.87)
+(l1-small, 5.88) (all-FA, 4.5)};
+
+\addplot[green!60!black,fill=green!40!white]
+coordinates {(default, 3.47) (l1-2way, 3.04) (all-2way, 2.94) (l2-4way, 2.84)
+(all-4way, 2.69) (l2-big, 2.53) (l1i-small, 3.65) (l1d-small, 4.13)
+(l1-small, 4.33) (all-FA, 2.43)};
+
+
+\legend{Read, Write, Instruction}
+\end{axis}
+\end{tikzpicture}
+\end{center}
+
+As expected, running nothing but reads and writes would be a bad idea on a small data cache system.  The most
+suprising result, however, is that it is worse for almost everyone involved.  Even instructions get worse CPI
+on a l1d-small cache than they do on a l1i-cache.  This is because of all the dirty blocks in L2 cache.  When
+we eventually read our instruction from L2, there is a high probability of a dirty kickout.  The fully associative
+cache is the clear winner, but once again, the data must be ignored, since there is no cost effective way of
+implementing this cache.
+
+\subsection{Memory Chunksize}
+
+The last component we explored was the memory chunksize between L2 cache and memory.  One would imagine performance
+to increase as we increase the size of the chunksize.  More importantly cost increases as we increase the chunksize.
+We can once again graph the cost multiplied by the normalized "cost" that we used previously.
+
+
+\begin{center}
+\begin{tikzpicture}
+\begin{axis}[
+    ybar,
+    enlargelimits=0.15,
+    title=Cost Multiplied by Normalized Execution Time,
+    scaled y ticks = false,
+    yticklabels={,,},
+    legend style={at={(0.5,-0.2)},
+      anchor=north,legend columns=-1},
+    symbolic x coords={default, l1-2way, all-2way, l2-4way, all-4way, l2-big, l1i-small, l1d-small, l1-small, all-FA},
+    xtick=data,
+    x tick label style={rotate=45,anchor=east},
+    width=16cm,
+    height=12cm,
+    bar width=7pt,
+]
+\addplot
+coordinates {(default, 44.57) (l1-2way, 49.54) (all-2way, 49.26) (l2-4way, 48.89)
+(all-4way, 55.47) (l2-big, 42.6) (l1i-small,  44.14) (l1d-small, 46.29)
+(l1-small, 45.29) (all-FA, 114.76)};
+\addplot
+coordinates {(default, 32.08) (l1-2way, 40.56) (all-2way, 40.62) (l2-4way, 40.56)
+(all-4way, 48.80) (l2-big, 34.52) (l1i-small,  29.98) (l1d-small, 31.70)
+(l1-small, 28.80) (all-FA, 114.69)};
+\addplot[green!60!black,fill=green!40!white]
+coordinates {(default, 28.1) (l1-2way, 39.95) (all-2way, 40.12) (l2-4way, 40.13)
+(all-4way, 50.32) (l2-big, 33.19) (l1i-small,  24.55) (l1d-small, 26.28)
+(l1-small, 21.66) (all-FA, 127.65)};
+
+\legend{64 Bytes, 32 Bytes, 16 Bytes}
+\end{axis}
+\end{tikzpicture}
+\end{center}
+
+As in so many of the other categories, youre design choice is going to be based off of what you want.  Everything
+is a tradeoff.  16 Bytes is generally better for most of the caches, but for most of them, 32 Bytes is almost as
+good.  In the actual design of a architecture, it may be easier to design a 32 byte bus.
+
+\section{Conclusion}
+
+Our data shows that the best memory model, using these idealized values given to us, would be two small, direct
+mapped caches and a unified direct mapped L2 cache with a 16 byte chunksize.  This is a very good allegory to
+everything we haved learned this year, the whole architecture design industry revolves heavily around cost.  A
+cache that is too expensive may not sell, and your business is gone.  It is not just about finding a balance
+between cost and performance, but about pushing the limits of how cheap you can make something.  It is the sad
+truth that I wish I didnt know about the business of modern computing.  A business is exactly what it is.
+
+
+\begin{figure}[H]
+\begin{center}
+\includegraphics[width=9cm]{f1}
+\end{center}
+\end{figure}
 
 \end{document}
