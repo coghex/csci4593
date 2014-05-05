@@ -23,6 +23,9 @@
 \usepackage{listings}
 \usepackage{color}
 \usepackage{qtree}
+\usepackage{pgfplots}
+\usepackage{pdflscape}
+\usepackage{rotating}
 %\usepackage{gensymb}
 
 \usetikzlibrary{calc}
@@ -135,8 +138,8 @@ could be "l1dassoc 4".  That would set the level 1 data cache to a 4-way set ass
 can be seen in the code, or in the example config files provided.
 
 \section{Simulation}
-The simulations were run on multiple cores of a PC running Arch Linux virtualized in a windows enviornment.
-In total they were run in a little over 20 hours.  The simulations included a number of traces that tested
+The simulations were run on multiple cores of a PC running Debian Linux virtualized in a windows enviornment.
+In total they were run in a little under 20 hours.  The simulations included a number of traces that tested
 a variaty of typical operations a computer would run.  Not suprisingly the simulations of the fully
 associative caches took almost twice as long as the direct mapped ones.  The LRU's linked list had to be
 traversed and reorganized on almost every reference.  This meant slow references, as well as a much less
@@ -145,6 +148,74 @@ omnetpp simulation was run on systems with multiple memory chunk sizes from cach
 preform cost benifit analysis on this later.
 
 \section{Results}
+The best way to present this data, in our minds, is to represent it as a ratio of the real time over the
+ideal time.  Since many of the traces vary in ideal execution time, but are mostly proportional to the
+stack parameters, the best option to initally analyse the data is to average out the values from each
+group of traces and present the ratio over ideal time.  This can be seen below.
+
+\begin{center}
+\begin{tikzpicture}
+\begin{axis}[
+    ybar,
+    enlargelimits=0.15,
+    title=Execution Time Proportional to Ideal Execution Time,
+    ylabel=Ratio Compared to Ideal,
+    legend style={at={(0.5,-0.2)},
+      anchor=north,legend columns=-1},
+    symbolic x coords={default, l1-2way, all-2way, l2-4way, all-4way, l2-big, l1i-small, l1d-small, l1-small, all-FA},
+    xtick=data,
+    nodes near coords,
+	    nodes near coords align={vertical},
+    x tick label style={rotate=45,anchor=east},
+    width=16cm,
+    height=12cm
+]
+\addplot
+coordinates {(default, 17.26) (l1-2way, 15.14) (all-2way, 15.16) (l2-4way, 14.17)
+(all-4way, 13.38) (l2-big, 12.62) (l1i-small, 18.14) (l1d-small, 20.52)
+(l1-small, 21.53) (all-FA, 12.13)};
+\end{axis}
+\end{tikzpicture}
+\end{center}
+
+The two fastest caches are all-FA and l2-big and, unsuprisingly, the slowest caches are the ones with smaller
+l1 cache sizes.  We know that a fully associative cache will gaurantee the highest hit rate.  If we had a very
+high miss penalty this would be our best bet, since we would always hit.  The larger L2 cache will also
+guarantee a low l2 miss rate which means, less accesses to main memory, the slowest part of the process.
+
+There are reasons why we dont use these caches for our everyday computing.  The fully associative simulation
+does not take into account the amount of time it takes to move down the LRU list and update it on every
+reference.  It is also extremely expensive, as we will show later on.  The large L2 cache is sufficient to
+allow more hits of older data.  This is great, but comes at the cost of a larger cache.
+
+Cost considerations are very important when considering which cache to choose.  If we manufacture processors,
+what matters to us is the bottom line, profit.  The ratio of perfomance over cost can be seen below.
+
+\begin{center}
+\begin{tikzpicture}
+\begin{axis}[
+    ybar,
+    enlargelimits=0.15,
+    title=Execution Time Proportional to Ideal Execution Time,
+    ylabel=Ratio Compared to Ideal,
+    legend style={at={(0.5,-0.2)},
+      anchor=north,legend columns=-1},
+    symbolic x coords={default, l1-2way, all-2way, l2-4way, all-4way, l2-big, l1i-small, l1d-small, l1-small, all-FA},
+    xtick=data,
+    nodes near coords,
+	    nodes near coords align={vertical},
+    x tick label style={rotate=45,anchor=east},
+    width=16cm,
+    height=12cm
+]
+\addplot
+coordinates {(default, 0.000110357) (l1-2way, 0.0000714056) (all-2way, 0.00006765442) (l2-4way, 0.00006885037)
+(all-4way, 0.00005244801) (l2-big, 0.00008127108) (l1i-small, 0.000129710097) (l1d-small, 0.0001146657)
+(l1-small, 0.0001429132) (all-FA, 0.00001974616)};
+\end{axis}
+\end{tikzpicture}
+\end{center}
+
 
 
 \end{document}
